@@ -17,14 +17,13 @@ interface Props {
   onPurchased: () => void;
   onClose: () => void;
   onClearSelection: () => void;
-  scrollRef?: React.Ref<HTMLElement>;
 }
 
 export default function PurchasePanel({
   selection, clickedPurchase,
   fillType, color, imageUrl,
   onFillTypeChange, onColorChange, onImageUrlChange,
-  onPurchased, onClose, onClearSelection, scrollRef,
+  onPurchased, onClose, onClearSelection,
 }: Props) {
   const [label, setLabel] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
@@ -136,12 +135,7 @@ if (!res.ok) { setError(data.error ?? 'Purchase failed'); return; }
   const inputCls = 'w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors';
 
   return (
-    <aside ref={scrollRef as React.Ref<HTMLElement>} className="w-screen md:w-72 max-h-[75vh] md:max-h-none md:h-full flex flex-col bg-white border-t md:border-t-0 md:border-l border-zinc-200 rounded-t-2xl md:rounded-none overflow-y-auto overscroll-y-contain shadow-xl md:shadow-none">
-      {/* Mobile drag handle indicator */}
-      <div className="md:hidden flex justify-center pt-3 pb-1 shrink-0">
-        <div className="w-8 h-1 rounded-full bg-zinc-300" />
-      </div>
-
+    <aside className="w-screen md:w-72 max-h-[75vh] md:max-h-none md:h-full flex flex-col bg-white border-t md:border-t-0 md:border-l border-zinc-200 md:rounded-none overflow-y-auto overscroll-y-contain shadow-xl md:shadow-none">
       {/* Header */}
       <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between shrink-0">
         <div>

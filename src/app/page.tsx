@@ -19,7 +19,7 @@ export default function Home() {
   const [panelCollapsed, setPanelCollapsed] = useState(false);
 
   const panelElRef = useRef<HTMLDivElement>(null);
-  const asideRef = useRef<HTMLElement>(null);
+  const handleRef = useRef<HTMLDivElement>(null);
   const isMobileRef = useRef(false);
 
   useEffect(() => {
@@ -73,55 +73,41 @@ export default function Home() {
   const panelOpen = !!(selection || clickedPurchase);
   const panelVisible = panelOpen && !panelCollapsed;
 
-  // Swipe-to-dismiss: track touch on the scrollable aside.
-  // Only intercept when the aside is scrolled to top AND user drags down —
-  // otherwise let the aside scroll naturally.
+  // Swipe-to-dismiss via drag handle only.
+  // preventDefault only in onMove (not onStart) so we don't block
+  // the scroll sequence before we know the gesture direction.
   useEffect(() => {
-    const aside = asideRef.current;
+    const handle = handleRef.current;
     const panelEl = panelElRef.current;
-    if (!aside || !panelEl) return;
+    if (!handle || !panelEl) return;
 
     let start: { x: number; y: number } | null = null;
-    let intercepting = false;
+    let dragging = false;
 
     const onStart = (e: TouchEvent) => {
       start = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      intercepting = false;
+      dragging = false;
       panelEl.style.transition = 'none';
     };
 
     const onMove = (e: TouchEvent) => {
       if (!start) return;
-      const dy = e.touches[0].clientY - start.y;
       const dx = e.touches[0].clientX - start.x;
-
-      if (isMobileRef.current) {
-        // Start intercepting only when: at scroll top AND clearly swiping down
-        if (!intercepting && dy > 8 && aside.scrollTop === 0) {
-          intercepting = true;
-        }
-        if (intercepting) {
-          e.preventDefault(); // prevents pull-to-refresh and scroll
-          panelEl.style.transform = `translateY(${Math.max(0, dy)}px)`;
-        }
-      } else {
-        if (!intercepting && dx > 8 && aside.scrollLeft === 0) {
-          intercepting = true;
-        }
-        if (intercepting) {
-          e.preventDefault();
-          panelEl.style.transform = `translateX(${Math.max(0, dx)}px)`;
-        }
-      }
+      const dy = e.touches[0].clientY - start.y;
+      const dismissDir = isMobileRef.current ? dy > 8 : dx > 8;
+      if (!dragging && dismissDir) dragging = true;
+      if (!dragging) return;
+      e.preventDefault(); // blocks pull-to-refresh once we're in a dismiss gesture
+      if (isMobileRef.current) panelEl.style.transform = `translateY(${Math.max(0, dy)}px)`;
+      else panelEl.style.transform = `translateX(${Math.max(0, dx)}px)`;
     };
 
     const onEnd = (e: TouchEvent) => {
       if (!start) return;
-      const dy = e.changedTouches[0].clientY - start.y;
       const dx = e.changedTouches[0].clientX - start.x;
+      const dy = e.changedTouches[0].clientY - start.y;
       panelEl.style.transition = '';
-
-      if (intercepting) {
+      if (dragging) {
         const dismiss = isMobileRef.current ? dy > 80 : dx > 80;
         if (dismiss) {
           panelEl.style.transform = '';
@@ -131,21 +117,20 @@ export default function Home() {
           setTimeout(() => { if (panelEl) panelEl.style.transform = ''; }, 300);
         }
       } else {
-        panelEl.style.transition = '';
+        panelEl.style.transform = '';
       }
-
       start = null;
-      intercepting = false;
+      dragging = false;
     };
 
-    aside.addEventListener('touchstart', onStart, { passive: true });
-    aside.addEventListener('touchmove', onMove, { passive: false });
-    aside.addEventListener('touchend', onEnd, { passive: true });
+    handle.addEventListener('touchstart', onStart, { passive: true });
+    handle.addEventListener('touchmove', onMove, { passive: false });
+    handle.addEventListener('touchend', onEnd, { passive: true });
 
     return () => {
-      aside.removeEventListener('touchstart', onStart);
-      aside.removeEventListener('touchmove', onMove);
-      aside.removeEventListener('touchend', onEnd);
+      handle.removeEventListener('touchstart', onStart);
+      handle.removeEventListener('touchmove', onMove);
+      handle.removeEventListener('touchend', onEnd);
     };
   }, []);
 
@@ -163,7 +148,6 @@ export default function Home() {
           onPurchaseClick={handlePurchaseClick}
         />
 
-        {/* Hint + mobile select button */}
         {!panelVisible && (
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
             {panelOpen && panelCollapsed && (
@@ -206,6 +190,13 @@ export default function Home() {
           ),
         }}
       >
+        {/* Drag handle — only this area triggers swipe-to-dismiss */}
+        <div
+          ref={handleRef}
+          className="md:hidden flex justify-center items-center h-8 cursor-grab bg-white rounded-t-2xl"
+        >
+          <div className="w-10 h-1 rounded-full bg-zinc-300" />
+        </div>
         <PurchasePanel
           selection={selection}
           clickedPurchase={clickedPurchase}
@@ -218,7 +209,7 @@ export default function Home() {
           onPurchased={fetchPurchases}
           onClose={handleCollapsePanel}
           onClearSelection={handleClearSelection}
-          scrollRef={asideRef}
+          scrollRef={null}
         />
       </div>
     </main>
