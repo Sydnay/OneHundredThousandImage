@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import PixelCanvas from '@/components/PixelCanvas';
 import PurchasePanel from '@/components/PurchasePanel';
 import type { NormalizedSelection, Purchase } from '@/lib/types';
@@ -16,6 +16,8 @@ export default function Home() {
 
   const [selectMode, setSelectMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const panelElRef = useRef<HTMLDivElement>(null);
+  const panelSwipeRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768);
@@ -55,6 +57,35 @@ export default function Home() {
   }, []);
 
   const panelOpen = !!(selection || clickedPurchase);
+
+  const onPanelTouchStart = useCallback((e: React.TouchEvent) => {
+    panelSwipeRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    if (panelElRef.current) panelElRef.current.style.transition = 'none';
+  }, []);
+
+  const onPanelTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!panelSwipeRef.current || !panelElRef.current) return;
+    const dx = e.touches[0].clientX - panelSwipeRef.current.x;
+    const dy = e.touches[0].clientY - panelSwipeRef.current.y;
+    if (isMobile && dy > 0) panelElRef.current.style.transform = `translateY(${dy}px)`;
+    else if (!isMobile && dx > 0) panelElRef.current.style.transform = `translateX(${dx}px)`;
+  }, [isMobile]);
+
+  const onPanelTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (!panelSwipeRef.current || !panelElRef.current) return;
+    const dx = e.changedTouches[0].clientX - panelSwipeRef.current.x;
+    const dy = e.changedTouches[0].clientY - panelSwipeRef.current.y;
+    panelElRef.current.style.transition = '';
+    const dismiss = isMobile ? dy > 80 : dx > 80;
+    if (dismiss) {
+      panelElRef.current.style.transform = '';
+      handleClearSelection();
+    } else {
+      panelElRef.current.style.transform = isMobile ? 'translateY(0)' : 'translateX(0)';
+      setTimeout(() => { if (panelElRef.current) panelElRef.current.style.transform = ''; }, 300);
+    }
+    panelSwipeRef.current = null;
+  }, [isMobile, handleClearSelection]);
 
   const panel = (
     <PurchasePanel
@@ -109,7 +140,11 @@ export default function Home() {
 
       {/* Panel — slides from right on desktop, from bottom on mobile */}
       <div
+        ref={panelElRef}
         className="absolute z-20 transition-transform duration-300 ease-in-out"
+        onTouchStart={onPanelTouchStart}
+        onTouchMove={onPanelTouchMove}
+        onTouchEnd={onPanelTouchEnd}
         style={{
           ...(isMobile
             ? { bottom: 0, left: 0, right: 0, transform: panelOpen ? 'translateY(0)' : 'translateY(100%)' }
