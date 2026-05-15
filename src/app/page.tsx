@@ -21,6 +21,7 @@ export default function Home() {
   const panelElRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<HTMLDivElement>(null);
   const isMobileRef = useRef(false);
+  const panelVisibleRef = useRef(false);
 
   useEffect(() => {
     const check = () => {
@@ -73,9 +74,47 @@ export default function Home() {
   const panelOpen = !!(selection || clickedPurchase);
   const panelVisible = panelOpen && !panelCollapsed;
 
+  useEffect(() => {
+    panelVisibleRef.current = panelVisible;
+  }, [panelVisible]);
+
+  // Block ALL document touchmove when panel is visible on mobile.
+  // This prevents pull-to-refresh and iOS rubber-band on ALL devices.
+  // Exception: allow vertical scroll inside aside when it can still scroll.
+  useEffect(() => {
+    let startY = 0;
+
+    const onStart = (e: TouchEvent) => {
+      startY = e.touches[0].clientY;
+    };
+
+    const onMove = (e: TouchEvent) => {
+      if (!panelVisibleRef.current || !isMobileRef.current) return;
+
+      const aside = panelElRef.current?.querySelector('aside');
+      if (aside && aside.contains(e.target as Node)) {
+        const dy = e.touches[0].clientY - startY;
+        const scrollingUp = dy < 0; // finger up → see content below
+        const scrollingDown = dy > 0; // finger down → see content above
+        const canScrollUp = aside.scrollTop < aside.scrollHeight - aside.clientHeight;
+        const canScrollDown = aside.scrollTop > 0;
+        if ((scrollingUp && canScrollUp) || (scrollingDown && canScrollDown)) {
+          return; // let aside scroll naturally
+        }
+      }
+
+      e.preventDefault();
+    };
+
+    document.addEventListener('touchstart', onStart, { passive: true });
+    document.addEventListener('touchmove', onMove, { passive: false });
+    return () => {
+      document.removeEventListener('touchstart', onStart);
+      document.removeEventListener('touchmove', onMove);
+    };
+  }, []);
+
   // Swipe-to-dismiss via drag handle only.
-  // preventDefault only in onMove (not onStart) so we don't block
-  // the scroll sequence before we know the gesture direction.
   useEffect(() => {
     const handle = handleRef.current;
     const panelEl = panelElRef.current;
@@ -97,7 +136,6 @@ export default function Home() {
       const dismissDir = isMobileRef.current ? dy > 8 : dx > 8;
       if (!dragging && dismissDir) dragging = true;
       if (!dragging) return;
-      e.preventDefault(); // blocks pull-to-refresh once we're in a dismiss gesture
       if (isMobileRef.current) panelEl.style.transform = `translateY(${Math.max(0, dy)}px)`;
       else panelEl.style.transform = `translateX(${Math.max(0, dx)}px)`;
     };
@@ -124,7 +162,7 @@ export default function Home() {
     };
 
     handle.addEventListener('touchstart', onStart, { passive: true });
-    handle.addEventListener('touchmove', onMove, { passive: false });
+    handle.addEventListener('touchmove', onMove, { passive: true });
     handle.addEventListener('touchend', onEnd, { passive: true });
 
     return () => {
@@ -190,7 +228,6 @@ export default function Home() {
           ),
         }}
       >
-        {/* Drag handle — only this area triggers swipe-to-dismiss */}
         <div
           ref={handleRef}
           className="md:hidden flex justify-center items-center h-8 cursor-grab bg-white rounded-t-2xl"
@@ -210,7 +247,6 @@ export default function Home() {
           onPurchased={fetchPurchases}
           onClose={handleCollapsePanel}
           onClearSelection={handleClearSelection}
-          scrollRef={null}
         />
       </div>
     </main>
