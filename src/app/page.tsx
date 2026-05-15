@@ -16,11 +16,18 @@ export default function Home() {
 
   const [selectMode, setSelectMode] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [panelCollapsed, setPanelCollapsed] = useState(false);
+
   const panelElRef = useRef<HTMLDivElement>(null);
-  const panelSwipeRef = useRef<{ x: number; y: number } | null>(null);
+  const handleRef = useRef<HTMLDivElement>(null);
+  const isMobileRef = useRef(false);
 
   useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
+    const check = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      isMobileRef.current = mobile;
+    };
     check();
     window.addEventListener('resize', check);
     return () => window.removeEventListener('resize', check);
@@ -43,64 +50,81 @@ export default function Home() {
   const handleSelectionChange = useCallback((sel: NormalizedSelection | null) => {
     setSelection(sel);
     setClickedPurchase(null);
+    if (sel) setPanelCollapsed(false);
   }, []);
 
   const handlePurchaseClick = useCallback((purchase: Purchase) => {
     setClickedPurchase(purchase);
     setSelection(null);
+    setPanelCollapsed(false);
   }, []);
 
   const handleClearSelection = useCallback(() => {
     setSelection(null);
     setClickedPurchase(null);
     setSelectMode(false);
+    setPanelCollapsed(false);
+  }, []);
+
+  const handleCollapsePanel = useCallback(() => {
+    setPanelCollapsed(true);
   }, []);
 
   const panelOpen = !!(selection || clickedPurchase);
+  const panelVisible = panelOpen && !panelCollapsed;
 
-  const onPanelTouchStart = useCallback((e: React.TouchEvent) => {
-    panelSwipeRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    if (panelElRef.current) panelElRef.current.style.transition = 'none';
+  // Native touch listeners on drag handle with passive:false to block pull-to-refresh
+  useEffect(() => {
+    const handle = handleRef.current;
+    const panelEl = panelElRef.current;
+    if (!handle || !panelEl) return;
+
+    let start: { x: number; y: number } | null = null;
+
+    const onStart = (e: TouchEvent) => {
+      e.preventDefault();
+      start = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      panelEl.style.transition = 'none';
+    };
+
+    const onMove = (e: TouchEvent) => {
+      if (!start) return;
+      e.preventDefault();
+      const dx = e.touches[0].clientX - start.x;
+      const dy = e.touches[0].clientY - start.y;
+      if (isMobileRef.current && dy > 0) {
+        panelEl.style.transform = `translateY(${dy}px)`;
+      } else if (!isMobileRef.current && dx > 0) {
+        panelEl.style.transform = `translateX(${dx}px)`;
+      }
+    };
+
+    const onEnd = (e: TouchEvent) => {
+      if (!start) return;
+      const dx = e.changedTouches[0].clientX - start.x;
+      const dy = e.changedTouches[0].clientY - start.y;
+      panelEl.style.transition = '';
+      const dismiss = isMobileRef.current ? dy > 80 : dx > 80;
+      if (dismiss) {
+        panelEl.style.transform = '';
+        setPanelCollapsed(true);
+      } else {
+        panelEl.style.transform = isMobileRef.current ? 'translateY(0)' : 'translateX(0)';
+        setTimeout(() => { if (panelEl) panelEl.style.transform = ''; }, 300);
+      }
+      start = null;
+    };
+
+    handle.addEventListener('touchstart', onStart, { passive: false });
+    handle.addEventListener('touchmove', onMove, { passive: false });
+    handle.addEventListener('touchend', onEnd);
+
+    return () => {
+      handle.removeEventListener('touchstart', onStart);
+      handle.removeEventListener('touchmove', onMove);
+      handle.removeEventListener('touchend', onEnd);
+    };
   }, []);
-
-  const onPanelTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!panelSwipeRef.current || !panelElRef.current) return;
-    const dx = e.touches[0].clientX - panelSwipeRef.current.x;
-    const dy = e.touches[0].clientY - panelSwipeRef.current.y;
-    if (isMobile && dy > 0) panelElRef.current.style.transform = `translateY(${dy}px)`;
-    else if (!isMobile && dx > 0) panelElRef.current.style.transform = `translateX(${dx}px)`;
-  }, [isMobile]);
-
-  const onPanelTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (!panelSwipeRef.current || !panelElRef.current) return;
-    const dx = e.changedTouches[0].clientX - panelSwipeRef.current.x;
-    const dy = e.changedTouches[0].clientY - panelSwipeRef.current.y;
-    panelElRef.current.style.transition = '';
-    const dismiss = isMobile ? dy > 80 : dx > 80;
-    if (dismiss) {
-      panelElRef.current.style.transform = '';
-      handleClearSelection();
-    } else {
-      panelElRef.current.style.transform = isMobile ? 'translateY(0)' : 'translateX(0)';
-      setTimeout(() => { if (panelElRef.current) panelElRef.current.style.transform = ''; }, 300);
-    }
-    panelSwipeRef.current = null;
-  }, [isMobile, handleClearSelection]);
-
-  const panel = (
-    <PurchasePanel
-      selection={selection}
-      clickedPurchase={clickedPurchase}
-      fillType={fillType}
-      color={color}
-      imageUrl={imageUrl}
-      onFillTypeChange={setFillType}
-      onColorChange={setColor}
-      onImageUrlChange={setImageUrl}
-      onPurchased={fetchPurchases}
-      onClearSelection={handleClearSelection}
-    />
-  );
 
   return (
     <main className="flex h-screen overflow-hidden bg-slate-100 relative">
@@ -117,9 +141,18 @@ export default function Home() {
         />
 
         {/* Hint + mobile select button */}
-        {!panelOpen && (
+        {!panelVisible && (
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
-            {isMobile && (
+            {/* Reopen tab when panel is collapsed but selection exists */}
+            {panelOpen && panelCollapsed && (
+              <button
+                onClick={() => setPanelCollapsed(false)}
+                className="px-4 py-2 rounded-full text-xs font-medium shadow-md bg-indigo-600 text-white transition-colors"
+              >
+                ↑ Show panel
+              </button>
+            )}
+            {isMobile && !panelOpen && (
               <button
                 onClick={() => setSelectMode(v => !v)}
                 className={`px-4 py-2 rounded-full text-xs font-medium shadow-md transition-colors ${
@@ -131,9 +164,11 @@ export default function Home() {
                 {selectMode ? 'Tap & drag to select' : '✏ Select area'}
               </button>
             )}
-            <div className="pointer-events-none bg-white/80 backdrop-blur-sm border border-zinc-200 rounded-full px-4 py-2 text-xs text-zinc-500 shadow-sm whitespace-nowrap">
-              {isMobile ? 'Pinch to zoom · tap to view' : 'Drag to select · scroll to zoom · click to view'}
-            </div>
+            {!panelOpen && (
+              <div className="pointer-events-none bg-white/80 backdrop-blur-sm border border-zinc-200 rounded-full px-4 py-2 text-xs text-zinc-500 shadow-sm whitespace-nowrap">
+                {isMobile ? 'Pinch to zoom · tap to view' : 'Drag to select · scroll to zoom · click to view'}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -142,17 +177,30 @@ export default function Home() {
       <div
         ref={panelElRef}
         className="absolute z-20 transition-transform duration-300 ease-in-out"
-        onTouchStart={onPanelTouchStart}
-        onTouchMove={onPanelTouchMove}
-        onTouchEnd={onPanelTouchEnd}
         style={{
           ...(isMobile
-            ? { bottom: 0, left: 0, right: 0, transform: panelOpen ? 'translateY(0)' : 'translateY(100%)' }
-            : { top: 0, right: 0, height: '100%', transform: panelOpen ? 'translateX(0)' : 'translateX(100%)' }
+            ? { bottom: 0, left: 0, right: 0, transform: panelVisible ? 'translateY(0)' : 'translateY(100%)' }
+            : { top: 0, right: 0, height: '100%', transform: panelVisible ? 'translateX(0)' : 'translateX(100%)' }
           ),
         }}
       >
-        {panel}
+        {/* Drag handle — native touch listeners attached here */}
+        <div ref={handleRef} className="md:hidden flex justify-center pt-3 pb-1 cursor-grab touch-none">
+          <div className="w-8 h-1 rounded-full bg-zinc-300" />
+        </div>
+        <PurchasePanel
+          selection={selection}
+          clickedPurchase={clickedPurchase}
+          fillType={fillType}
+          color={color}
+          imageUrl={imageUrl}
+          onFillTypeChange={setFillType}
+          onColorChange={setColor}
+          onImageUrlChange={setImageUrl}
+          onPurchased={fetchPurchases}
+          onClose={handleCollapsePanel}
+          onClearSelection={handleClearSelection}
+        />
       </div>
     </main>
   );

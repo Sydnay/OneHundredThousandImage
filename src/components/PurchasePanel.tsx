@@ -15,6 +15,7 @@ interface Props {
   onColorChange: (v: string) => void;
   onImageUrlChange: (v: string) => void;
   onPurchased: () => void;
+  onClose: () => void;
   onClearSelection: () => void;
 }
 
@@ -22,7 +23,7 @@ export default function PurchasePanel({
   selection, clickedPurchase,
   fillType, color, imageUrl,
   onFillTypeChange, onColorChange, onImageUrlChange,
-  onPurchased, onClearSelection,
+  onPurchased, onClose, onClearSelection,
 }: Props) {
   const [label, setLabel] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
@@ -135,11 +136,6 @@ if (!res.ok) { setError(data.error ?? 'Purchase failed'); return; }
 
   return (
     <aside className="w-screen md:w-72 max-h-[75vh] md:max-h-none md:h-full flex flex-col bg-white border-t md:border-t-0 md:border-l border-zinc-200 rounded-t-2xl md:rounded-none overflow-y-auto shadow-xl md:shadow-none">
-      {/* Mobile drag handle */}
-      <div className="md:hidden flex justify-center pt-3 pb-1">
-        <div className="w-8 h-1 rounded-full bg-zinc-300" />
-      </div>
-
       {/* Header */}
       <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between">
         <div>
@@ -147,7 +143,7 @@ if (!res.ok) { setError(data.error ?? 'Purchase failed'); return; }
           <p className="text-xs text-zinc-400 mt-0.5">400 × 250 · $1 per cell</p>
         </div>
         <button
-          onClick={onClearSelection}
+          onClick={onClose}
           className="w-6 h-6 flex items-center justify-center rounded-full text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors text-base leading-none"
           title="Close"
         >×</button>
