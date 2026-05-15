@@ -16,6 +16,7 @@ interface Props {
   fillType: 'color' | 'image';
   color: string;
   imageUrl: string;
+  selectMode: boolean;
   onSelectionChange: (sel: NormalizedSelection | null) => void;
   onPurchaseClick: (purchase: Purchase) => void;
 }
@@ -40,7 +41,7 @@ function edgeToCursor({ n, s, e, w }: Edge): string {
   return 'crosshair';
 }
 
-export default function PixelCanvas({ purchases, selection, fillType, color, imageUrl, onSelectionChange, onPurchaseClick }: Props) {
+export default function PixelCanvas({ purchases, selection, fillType, color, imageUrl, selectMode, onSelectionChange, onPurchaseClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -76,6 +77,15 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
   const spaceHeldRef = useRef(false);
   const rafRef = useRef<number>(0);
   const purchasesRef = useRef<Purchase[]>(purchases);
+  const dprRef = useRef(1);
+  const selectModeRef = useRef(selectMode);
+
+  // Touch state
+  const touchRef = useRef<{
+    type: 'pan' | 'pinch' | 'select';
+    startX: number; startY: number; moved: boolean;
+    pinchStartDist?: number; pinchStartScale?: number;
+  } | null>(null);
 
   // ── sync refs with props ──────────────────────────────────────────────────
 
@@ -94,6 +104,7 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
 
   useEffect(() => { fillTypeRef.current = fillType; }, [fillType]);
   useEffect(() => { colorRef.current = color; }, [color]);
+  useEffect(() => { selectModeRef.current = selectMode; }, [selectMode]);
   useEffect(() => {
     selectionRef.current = selection;
     // When selection is set/updated externally, sync drag refs so resize hit-test matches
@@ -170,6 +181,7 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
 
     const { x: ox, y: oy } = offsetRef.current;
     const scale = scaleRef.current;
+    const dpr = dprRef.current;
     const cw = canvas.width;
     const ch = canvas.height;
 
@@ -178,7 +190,7 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
     ctx.fillStyle = '#f1f5f9';
     ctx.fillRect(0, 0, cw, ch);
 
-    ctx.setTransform(scale, 0, 0, scale, ox, oy);
+    ctx.setTransform(scale * dpr, 0, 0, scale * dpr, ox * dpr, oy * dpr);
 
     // Grid with shadow
     ctx.shadowColor = 'rgba(0,0,0,0.10)';
@@ -268,7 +280,14 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
     const canvas    = canvasRef.current;
     if (!container || !canvas) return;
 
-    const resize = () => { canvas.width = container.clientWidth; canvas.height = container.clientHeight; };
+    const resize = () => {
+      const dpr = window.devicePixelRatio || 1;
+      dprRef.current = dpr;
+      canvas.width  = container.clientWidth  * dpr;
+      canvas.height = container.clientHeight * dpr;
+      canvas.style.width  = container.clientWidth  + 'px';
+      canvas.style.height = container.clientHeight + 'px';
+    };
     const observer = new ResizeObserver(resize);
     observer.observe(container);
     resize();
@@ -290,7 +309,7 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
   const clampOffset = useCallback((ox: number, oy: number) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: ox, y: oy };
-    const w = canvas.width, h = canvas.height;
+    const w = canvas.clientWidth, h = canvas.clientHeight;
     const gw = GRID_W * scaleRef.current;
     const gh = GRID_H * scaleRef.current;
     const minX = w * 0.8 - gw, maxX = w * 0.2;
@@ -307,7 +326,7 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
     const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-    const minScale = Math.min(canvas.width / GRID_W, canvas.height / GRID_H) * 0.85;
+    const minScale = Math.min(canvas.clientWidth / GRID_W, canvas.clientHeight / GRID_H) * 0.85;
     const factor = e.deltaY > 0 ? 0.9 : 1.1;
     const newScale = Math.min(25, Math.max(minScale, scaleRef.current * factor));
     const rawX = mx - (mx - offsetRef.current.x) * (newScale / scaleRef.current);
@@ -515,6 +534,111 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
     dragEndRef.current   = null;
     onSelectionChange(null);
   }, [onSelectionChange]);
+
+  // ── touch handlers ────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const onTouchStart = (e: TouchEvent) => {
+      e.preventDefault();
+      const touches = Array.from(e.touches);
+      if (touches.length === 1) {
+        const t = touches[0];
+        if (selectModeRef.current) {
+          const cell = screenToCell(t.clientX, t.clientY);
+          if (cell) { isDraggingRef.current = true; dragStartRef.current = cell; dragEndRef.current = cell; }
+          touchRef.current = { type: 'select', startX: t.clientX, startY: t.clientY, moved: false };
+        } else {
+          isPanningRef.current = true;
+          panStartRef.current = { x: t.clientX - offsetRef.current.x, y: t.clientY - offsetRef.current.y };
+          touchRef.current = { type: 'pan', startX: t.clientX, startY: t.clientY, moved: false };
+        }
+      } else if (touches.length >= 2) {
+        isPanningRef.current = false;
+        isDraggingRef.current = false;
+        const t1 = touches[0], t2 = touches[1];
+        touchRef.current = {
+          type: 'pinch',
+          startX: (t1.clientX + t2.clientX) / 2,
+          startY: (t1.clientY + t2.clientY) / 2,
+          moved: false,
+          pinchStartDist:  Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY),
+          pinchStartScale: scaleRef.current,
+        };
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      const state = touchRef.current;
+      if (!state) return;
+      const touches = Array.from(e.touches);
+
+      if (state.type === 'pan' && touches.length === 1) {
+        const t = touches[0];
+        offsetRef.current = clampOffset(t.clientX - panStartRef.current.x, t.clientY - panStartRef.current.y);
+        state.moved = true;
+      } else if (state.type === 'select' && touches.length === 1) {
+        const cell = screenToCell(touches[0].clientX, touches[0].clientY);
+        if (cell) dragEndRef.current = cell;
+        state.moved = true;
+      } else if (state.type === 'pinch' && touches.length >= 2) {
+        const t1 = touches[0], t2 = touches[1];
+        const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
+        const rect = canvas.getBoundingClientRect();
+        const midX = (t1.clientX + t2.clientX) / 2 - rect.left;
+        const midY = (t1.clientY + t2.clientY) / 2 - rect.top;
+        const minScale = Math.min(canvas.clientWidth / GRID_W, canvas.clientHeight / GRID_H) * 0.85;
+        const newScale = Math.min(25, Math.max(minScale, state.pinchStartScale! * (dist / state.pinchStartDist!)));
+        const ratio = newScale / scaleRef.current;
+        const newOx = midX - (midX - offsetRef.current.x) * ratio;
+        const newOy = midY - (midY - offsetRef.current.y) * ratio;
+        scaleRef.current = newScale;
+        offsetRef.current = clampOffset(newOx, newOy);
+        state.moved = true;
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      const state = touchRef.current;
+      if (state?.type === 'pan' && !state.moved) {
+        const t = e.changedTouches[0];
+        const cell = screenToCell(t.clientX, t.clientY);
+        if (cell) {
+          const hit = purchasesRef.current.find(p =>
+            cell.cellX >= p.x && cell.cellX < p.x + p.width &&
+            cell.cellY >= p.y && cell.cellY < p.y + p.height
+          );
+          if (hit) {
+            if (hit.link_url) window.open(hit.link_url, '_blank', 'noopener,noreferrer');
+            else onPurchaseClick(hit);
+          }
+        }
+      } else if (state?.type === 'select') {
+        isDraggingRef.current = false;
+        const ds = dragStartRef.current, de = dragEndRef.current;
+        if (ds && de) {
+          const { x, y, w, h } = normalizeRect(ds.cellX, ds.cellY, de.cellX, de.cellY);
+          onSelectionChange({ x, y, width: w, height: h, cellCount: w * h, totalPrice: w * h });
+        }
+      }
+      if (e.touches.length === 0) {
+        isPanningRef.current = false;
+        touchRef.current = null;
+      }
+    };
+
+    canvas.addEventListener('touchstart',  onTouchStart, { passive: false });
+    canvas.addEventListener('touchmove',   onTouchMove,  { passive: false });
+    canvas.addEventListener('touchend',    onTouchEnd,   { passive: false });
+    return () => {
+      canvas.removeEventListener('touchstart',  onTouchStart);
+      canvas.removeEventListener('touchmove',   onTouchMove);
+      canvas.removeEventListener('touchend',    onTouchEnd);
+    };
+  }, [clampOffset, screenToCell, onPurchaseClick, onSelectionChange]);
 
   return (
     <div ref={containerRef} className="absolute inset-0">

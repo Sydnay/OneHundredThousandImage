@@ -134,11 +134,23 @@ if (!res.ok) { setError(data.error ?? 'Purchase failed'); return; }
   const inputCls = 'w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors';
 
   return (
-    <aside className="w-72 flex flex-col bg-white border-l border-zinc-200 overflow-y-auto">
+    <aside className="w-screen md:w-72 max-h-[75vh] md:max-h-none md:h-full flex flex-col bg-white border-t md:border-t-0 md:border-l border-zinc-200 rounded-t-2xl md:rounded-none overflow-y-auto shadow-xl md:shadow-none">
+      {/* Mobile drag handle */}
+      <div className="md:hidden flex justify-center pt-3 pb-1">
+        <div className="w-8 h-1 rounded-full bg-zinc-300" />
+      </div>
+
       {/* Header */}
-      <div className="px-5 py-4 border-b border-zinc-100">
-        <h1 className="text-sm font-semibold tracking-wide text-zinc-900">100K Pixel Grid</h1>
-        <p className="text-xs text-zinc-400 mt-0.5">400 × 250 · $1 per cell</p>
+      <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between">
+        <div>
+          <h1 className="text-sm font-semibold tracking-wide text-zinc-900">100K Pixel Grid</h1>
+          <p className="text-xs text-zinc-400 mt-0.5">400 × 250 · $1 per cell</p>
+        </div>
+        <button
+          onClick={onClearSelection}
+          className="w-6 h-6 flex items-center justify-center rounded-full text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors text-base leading-none"
+          title="Close"
+        >×</button>
       </div>
 
       <div className="flex-1 px-5 py-4 space-y-5">

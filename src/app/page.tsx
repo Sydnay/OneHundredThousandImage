@@ -14,6 +14,16 @@ export default function Home() {
   const [color, setColor] = useState('#6366f1');
   const [imageUrl, setImageUrl] = useState('');
 
+  const [selectMode, setSelectMode] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+
   const fetchPurchases = useCallback(async () => {
     try {
       const res = await fetch('/api/pixels', { cache: 'no-store' });
@@ -41,9 +51,25 @@ export default function Home() {
   const handleClearSelection = useCallback(() => {
     setSelection(null);
     setClickedPurchase(null);
+    setSelectMode(false);
   }, []);
 
   const panelOpen = !!(selection || clickedPurchase);
+
+  const panel = (
+    <PurchasePanel
+      selection={selection}
+      clickedPurchase={clickedPurchase}
+      fillType={fillType}
+      color={color}
+      imageUrl={imageUrl}
+      onFillTypeChange={setFillType}
+      onColorChange={setColor}
+      onImageUrlChange={setImageUrl}
+      onPurchased={fetchPurchases}
+      onClearSelection={handleClearSelection}
+    />
+  );
 
   return (
     <main className="flex h-screen overflow-hidden bg-slate-100 relative">
@@ -54,37 +80,44 @@ export default function Home() {
           fillType={fillType}
           color={color}
           imageUrl={imageUrl}
-          onSelectionChange={handleSelectionChange}
+          selectMode={selectMode}
+          onSelectionChange={sel => { handleSelectionChange(sel); if (sel) setSelectMode(false); }}
           onPurchaseClick={handlePurchaseClick}
         />
 
-        {/* Hint — visible only when nothing selected */}
+        {/* Hint + mobile select button */}
         {!panelOpen && (
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none">
-            <div className="bg-white/80 backdrop-blur-sm border border-zinc-200 rounded-full px-4 py-2 text-xs text-zinc-500 shadow-sm">
-              Drag to select an area · scroll to zoom · click a purchased area to view
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+            {isMobile && (
+              <button
+                onClick={() => setSelectMode(v => !v)}
+                className={`px-4 py-2 rounded-full text-xs font-medium shadow-md transition-colors ${
+                  selectMode
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-white/90 text-zinc-700 border border-zinc-200'
+                }`}
+              >
+                {selectMode ? 'Tap & drag to select' : '✏ Select area'}
+              </button>
+            )}
+            <div className="pointer-events-none bg-white/80 backdrop-blur-sm border border-zinc-200 rounded-full px-4 py-2 text-xs text-zinc-500 shadow-sm whitespace-nowrap">
+              {isMobile ? 'Pinch to zoom · tap to view' : 'Drag to select · scroll to zoom · click to view'}
             </div>
           </div>
         )}
       </div>
 
-      {/* Sliding panel */}
+      {/* Panel — slides from right on desktop, from bottom on mobile */}
       <div
-        className="absolute right-0 top-0 h-full z-20 transition-transform duration-300 ease-in-out"
-        style={{ transform: panelOpen ? 'translateX(0)' : 'translateX(100%)' }}
+        className="absolute z-20 transition-transform duration-300 ease-in-out"
+        style={{
+          ...(isMobile
+            ? { bottom: 0, left: 0, right: 0, transform: panelOpen ? 'translateY(0)' : 'translateY(100%)' }
+            : { top: 0, right: 0, height: '100%', transform: panelOpen ? 'translateX(0)' : 'translateX(100%)' }
+          ),
+        }}
       >
-        <PurchasePanel
-          selection={selection}
-          clickedPurchase={clickedPurchase}
-          fillType={fillType}
-          color={color}
-          imageUrl={imageUrl}
-          onFillTypeChange={setFillType}
-          onColorChange={setColor}
-          onImageUrlChange={setImageUrl}
-          onPurchased={fetchPurchases}
-          onClearSelection={handleClearSelection}
-        />
+        {panel}
       </div>
     </main>
   );
