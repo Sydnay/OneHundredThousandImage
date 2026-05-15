@@ -194,6 +194,7 @@ export default function Home() {
         <div
           ref={handleRef}
           className="md:hidden flex justify-center items-center h-8 cursor-grab bg-white rounded-t-2xl"
+          style={{ touchAction: 'none' }}
         >
           <div className="w-10 h-1 rounded-full bg-zinc-300" />
         </div>

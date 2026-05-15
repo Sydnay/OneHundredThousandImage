@@ -135,7 +135,7 @@ if (!res.ok) { setError(data.error ?? 'Purchase failed'); return; }
   const inputCls = 'w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors';
 
   return (
-    <aside className="w-screen md:w-72 max-h-[75vh] md:max-h-none md:h-full flex flex-col bg-white border-t md:border-t-0 md:border-l border-zinc-200 md:rounded-none overflow-y-auto overscroll-y-contain shadow-xl md:shadow-none">
+    <aside className="w-screen md:w-72 max-h-[75vh] md:max-h-none md:h-full flex flex-col bg-white border-t md:border-t-0 md:border-l border-zinc-200 md:rounded-none overflow-y-auto overscroll-y-contain shadow-xl md:shadow-none" style={{ touchAction: 'pan-y' }}>
       {/* Header */}
       <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between shrink-0">
         <div>
