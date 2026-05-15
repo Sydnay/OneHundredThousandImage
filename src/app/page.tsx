@@ -43,8 +43,10 @@ export default function Home() {
     setClickedPurchase(null);
   }, []);
 
+  const panelOpen = !!(selection || clickedPurchase);
+
   return (
-    <main className="flex h-screen overflow-hidden bg-slate-100">
+    <main className="flex h-screen overflow-hidden bg-slate-100 relative">
       <div className="flex-1 relative overflow-hidden">
         <PixelCanvas
           purchases={purchases}
@@ -55,20 +57,35 @@ export default function Home() {
           onSelectionChange={handleSelectionChange}
           onPurchaseClick={handlePurchaseClick}
         />
+
+        {/* Hint — visible only when nothing selected */}
+        {!panelOpen && (
+          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none">
+            <div className="bg-white/80 backdrop-blur-sm border border-zinc-200 rounded-full px-4 py-2 text-xs text-zinc-500 shadow-sm">
+              Drag to select an area · scroll to zoom · click a purchased area to view
+            </div>
+          </div>
+        )}
       </div>
 
-      <PurchasePanel
-        selection={selection}
-        clickedPurchase={clickedPurchase}
-        fillType={fillType}
-        color={color}
-        imageUrl={imageUrl}
-        onFillTypeChange={setFillType}
-        onColorChange={setColor}
-        onImageUrlChange={setImageUrl}
-        onPurchased={fetchPurchases}
-        onClearSelection={handleClearSelection}
-      />
+      {/* Sliding panel */}
+      <div
+        className="absolute right-0 top-0 h-full z-20 transition-transform duration-300 ease-in-out"
+        style={{ transform: panelOpen ? 'translateX(0)' : 'translateX(100%)' }}
+      >
+        <PurchasePanel
+          selection={selection}
+          clickedPurchase={clickedPurchase}
+          fillType={fillType}
+          color={color}
+          imageUrl={imageUrl}
+          onFillTypeChange={setFillType}
+          onColorChange={setColor}
+          onImageUrlChange={setImageUrl}
+          onPurchased={fetchPurchases}
+          onClearSelection={handleClearSelection}
+        />
+      </div>
     </main>
   );
 }
