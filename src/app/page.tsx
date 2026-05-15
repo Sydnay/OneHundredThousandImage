@@ -82,19 +82,20 @@ export default function Home() {
     let start: { x: number; y: number } | null = null;
 
     const onStart = (e: TouchEvent) => {
-      e.preventDefault();
       start = { x: e.touches[0].clientX, y: e.touches[0].clientY };
       panelEl.style.transition = 'none';
     };
 
     const onMove = (e: TouchEvent) => {
       if (!start) return;
-      e.preventDefault();
       const dx = e.touches[0].clientX - start.x;
       const dy = e.touches[0].clientY - start.y;
-      if (isMobileRef.current && dy > 0) {
+      // Only intercept when clearly dragging the panel in dismiss direction
+      if (isMobileRef.current && dy > 8) {
+        e.preventDefault(); // blocks pull-to-refresh only when swiping panel down
         panelEl.style.transform = `translateY(${dy}px)`;
-      } else if (!isMobileRef.current && dx > 0) {
+      } else if (!isMobileRef.current && dx > 8) {
+        e.preventDefault();
         panelEl.style.transform = `translateX(${dx}px)`;
       }
     };
