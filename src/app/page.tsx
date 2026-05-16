@@ -75,28 +75,18 @@ export default function Home() {
 
   useEffect(() => {
     panelVisibleRef.current = panelVisible;
-    // Clear any manual transform left over from gesture handlers
-    // so React's style prop takes full control on state change
-    const panelEl = panelElRef.current;
-    if (panelEl) {
-      panelEl.style.transform = '';
-      panelEl.style.transition = '';
-    }
   }, [panelVisible]);
 
-  // Single document-level touch handler:
-  // - blocks pull-to-refresh / iOS rubber-band on all devices
-  // - dismisses panel only when aside is scrolled to top AND finger goes down
-  // - allows aside to scroll freely otherwise
+  // Block pull-to-refresh / iOS rubber-band when panel is open.
+  // Allow aside scroll only when it has content to scroll in that direction.
+  // Detect swipe-down-to-dismiss when aside is at scrollTop 0.
   useEffect(() => {
     let startY = 0;
     let startTarget: EventTarget | null = null;
-    let dismissing = false;
 
     const onStart = (e: TouchEvent) => {
       startY = e.touches[0].clientY;
       startTarget = e.target;
-      dismissing = false;
     };
 
     const onMove = (e: TouchEvent) => {
@@ -108,48 +98,27 @@ export default function Home() {
       const dy = e.touches[0].clientY - startY;
 
       if (aside && aside.contains(startTarget as Node)) {
-        if (dismissing) {
-          // Already in dismiss mode — track the drag
-          e.preventDefault();
-          panelEl.style.transform = `translateY(${Math.max(0, dy)}px)`;
-          return;
-        }
-        if (dy > 10 && aside.scrollTop === 0) {
-          // Finger down + aside at top → start dismissing
-          dismissing = true;
-          panelEl.style.transition = 'none';
-          e.preventDefault();
-          panelEl.style.transform = `translateY(${Math.max(0, dy)}px)`;
-          return;
-        }
-        // Allow aside scroll when it has content to scroll
         const canScrollDown = aside.scrollTop < aside.scrollHeight - aside.clientHeight;
         const canScrollUp = aside.scrollTop > 0;
-        if ((dy < 0 && canScrollDown) || (dy > 0 && canScrollUp)) {
-          return;
-        }
+        // Allow natural scroll if aside can scroll that way
+        if ((dy < 0 && canScrollDown) || (dy > 0 && canScrollUp)) return;
       }
 
-      // Block everything else (pull-to-refresh, rubber-band, etc.)
       e.preventDefault();
     };
 
     const onEnd = (e: TouchEvent) => {
       if (!panelVisibleRef.current || !isMobileRef.current) return;
+
       const panelEl = panelElRef.current;
       if (!panelEl) return;
+      const aside = panelEl.querySelector('aside');
+      const dy = e.changedTouches[0].clientY - startY;
 
-      if (dismissing) {
-        const dy = e.changedTouches[0].clientY - startY;
-        panelEl.style.transition = '';
-        if (dy > 80) {
-          panelEl.style.transform = '';
-          setPanelCollapsed(true);
-        } else {
-          panelEl.style.transform = 'translateY(0)';
-          setTimeout(() => { panelEl.style.transform = ''; }, 300);
-        }
-        dismissing = false;
+      // Dismiss when swiping down anywhere in panel and aside is at top
+      const atTop = !aside || aside.scrollTop === 0;
+      if (dy > 80 && atTop && panelEl.contains(startTarget as Node)) {
+        setPanelCollapsed(true);
       }
     };
 
@@ -208,19 +177,25 @@ export default function Home() {
         )}
       </div>
 
+      {/* Backdrop — tap outside panel to collapse */}
+      {panelVisible && isMobile && (
+        <div
+          className="absolute inset-0 z-10"
+          onClick={handleCollapsePanel}
+        />
+      )}
+
       {/* Panel — slides from right on desktop, from bottom on mobile */}
       <div
         ref={panelElRef}
-        className="absolute z-20 transition-transform duration-300 ease-in-out"
-        style={{
-          ...(isMobile
-            ? { bottom: 0, left: 0, right: 0, transform: panelVisible ? 'translateY(0)' : 'translateY(100%)' }
-            : { top: 0, right: 0, height: '100%', transform: panelVisible ? 'translateX(0)' : 'translateX(100%)' }
-          ),
-          pointerEvents: panelVisible ? 'auto' : 'none',
-        }}
+        className={`absolute z-20 transition-transform duration-300 ease-in-out ${
+          isMobile
+            ? `bottom-0 left-0 right-0 ${panelVisible ? 'translate-y-0' : 'translate-y-full'}`
+            : `top-0 right-0 h-full ${panelVisible ? 'translate-x-0' : 'translate-x-full'}`
+        }`}
+        style={{ pointerEvents: panelVisible ? 'auto' : 'none' }}
       >
-        {/* Visual drag handle — no listeners, dismiss handled by document touchmove */}
+        {/* Visual drag handle */}
         <div className="md:hidden flex justify-center items-center h-8 bg-white rounded-t-2xl">
           <div className="w-10 h-1 rounded-full bg-zinc-300" />
         </div>
