@@ -23,6 +23,8 @@ interface Props {
 
 interface Edge { n: boolean; s: boolean; e: boolean; w: boolean }
 
+const isGifUrl = (url: string) => /\.gif($|\?)/i.test(url);
+
 function normalizeRect(x1: number, y1: number, x2: number, y2: number) {
   const x = Math.max(0, Math.min(x1, x2));
   const y = Math.max(0, Math.min(y1, y2));
@@ -44,6 +46,8 @@ function edgeToCursor({ n, s, e, w }: Edge): string {
 export default function PixelCanvas({ purchases, selection, fillType, color, imageUrl, selectMode, onSelectionChange, onPurchaseClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const gifLayerRef = useRef<HTMLDivElement>(null);
+  const gifImgMapRef = useRef<Map<number, HTMLImageElement>>(new Map());
   const tooltipRef = useRef<HTMLDivElement>(null);
   const tooltipPurchaseIdRef = useRef<number | null>(null);
   const imageCache = useRef<Map<string, HTMLImageElement | null>>(new Map());
@@ -91,8 +95,31 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
 
   useEffect(() => {
     purchasesRef.current = purchases;
+    const gifLayer = gifLayerRef.current;
+    const gifImgMap = gifImgMapRef.current;
+
+    // Remove GIF overlay imgs for purchases no longer present
+    const activeGifIds = new Set(
+      purchases
+        .filter(p => p.fill_type === 'image' && p.image_url && isGifUrl(p.image_url))
+        .map(p => p.id)
+    );
+    gifImgMap.forEach((img, id) => {
+      if (!activeGifIds.has(id)) { img.remove(); gifImgMap.delete(id); }
+    });
+
     purchases.forEach(p => {
-      if (p.fill_type === 'image' && p.image_url && !imageCache.current.has(p.image_url)) {
+      if (p.fill_type !== 'image' || !p.image_url) return;
+      if (isGifUrl(p.image_url)) {
+        if (!gifImgMap.has(p.id) && gifLayer) {
+          const img = document.createElement('img');
+          img.src = p.image_url;
+          img.alt = '';
+          img.style.cssText = 'position:absolute;pointer-events:none;image-rendering:pixelated;';
+          gifLayer.appendChild(img);
+          gifImgMap.set(p.id, img);
+        }
+      } else if (!imageCache.current.has(p.image_url)) {
         imageCache.current.set(p.image_url, null);
         const img = new Image();
         img.onload = () => { imageCache.current.set(p.image_url!, img); };
@@ -210,10 +237,26 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
         ctx.fillStyle = p.color;
         ctx.fillRect(px, py, pw, ph);
       } else if (p.fill_type === 'image' && p.image_url) {
-        const img = imageCache.current.get(p.image_url);
-        if (img) ctx.drawImage(img, px, py, pw, ph);
-        else { ctx.fillStyle = '#e4e4e7'; ctx.fillRect(px, py, pw, ph); }
+        if (isGifUrl(p.image_url)) {
+          // GIF: rendered as overlay img — skip canvas drawing
+        } else {
+          const img = imageCache.current.get(p.image_url);
+          if (img) ctx.drawImage(img, px, py, pw, ph);
+          else { ctx.fillStyle = '#e4e4e7'; ctx.fillRect(px, py, pw, ph); }
+        }
       }
+    }
+
+    // Sync GIF overlay img positions with current transform
+    const gifImgMap = gifImgMapRef.current;
+    for (const p of purchasesRef.current) {
+      if (p.fill_type !== 'image' || !p.image_url || !isGifUrl(p.image_url)) continue;
+      const img = gifImgMap.get(p.id);
+      if (!img) continue;
+      img.style.left   = `${p.x * CELL * scale + ox}px`;
+      img.style.top    = `${p.y * CELL * scale + oy}px`;
+      img.style.width  = `${p.width  * CELL * scale}px`;
+      img.style.height = `${p.height * CELL * scale}px`;
     }
 
     // Grid lines at high zoom
@@ -652,6 +695,9 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
         onMouseLeave={handleMouseLeave}
         onContextMenu={handleContextMenu}
       />
+
+      {/* GIF overlay — positioned above canvas so animated GIFs are visible */}
+      <div ref={gifLayerRef} className="absolute inset-0 pointer-events-none overflow-hidden" />
 
       {/* Link tooltip */}
       <div
