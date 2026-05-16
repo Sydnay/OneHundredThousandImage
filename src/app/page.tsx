@@ -19,7 +19,6 @@ export default function Home() {
   const [panelCollapsed, setPanelCollapsed] = useState(false);
 
   const panelElRef = useRef<HTMLDivElement>(null);
-  const handleRef = useRef<HTMLDivElement>(null);
   const isMobileRef = useRef(false);
   const panelVisibleRef = useRef(false);
 
@@ -78,97 +77,82 @@ export default function Home() {
     panelVisibleRef.current = panelVisible;
   }, [panelVisible]);
 
-  // Block ALL document touchmove when panel is visible on mobile.
-  // This prevents pull-to-refresh and iOS rubber-band on ALL devices.
-  // Exception: allow vertical scroll inside aside when it can still scroll.
+  // Single document-level touch handler:
+  // - blocks pull-to-refresh / iOS rubber-band on all devices
+  // - dismisses panel only when aside is scrolled to top AND finger goes down
+  // - allows aside to scroll freely otherwise
   useEffect(() => {
     let startY = 0;
+    let startTarget: EventTarget | null = null;
+    let dismissing = false;
 
     const onStart = (e: TouchEvent) => {
       startY = e.touches[0].clientY;
+      startTarget = e.target;
+      dismissing = false;
     };
 
     const onMove = (e: TouchEvent) => {
       if (!panelVisibleRef.current || !isMobileRef.current) return;
 
-      const aside = panelElRef.current?.querySelector('aside');
-      if (aside && aside.contains(e.target as Node)) {
-        const dy = e.touches[0].clientY - startY;
-        const scrollingUp = dy < 0; // finger up → see content below
-        const scrollingDown = dy > 0; // finger down → see content above
-        const canScrollUp = aside.scrollTop < aside.scrollHeight - aside.clientHeight;
-        const canScrollDown = aside.scrollTop > 0;
-        if ((scrollingUp && canScrollUp) || (scrollingDown && canScrollDown)) {
-          return; // let aside scroll naturally
+      const panelEl = panelElRef.current;
+      if (!panelEl) return;
+      const aside = panelEl.querySelector('aside');
+      const dy = e.touches[0].clientY - startY;
+
+      if (aside && aside.contains(startTarget as Node)) {
+        if (dismissing) {
+          // Already in dismiss mode — track the drag
+          e.preventDefault();
+          panelEl.style.transform = `translateY(${Math.max(0, dy)}px)`;
+          return;
+        }
+        if (dy > 10 && aside.scrollTop === 0) {
+          // Finger down + aside at top → start dismissing
+          dismissing = true;
+          panelEl.style.transition = 'none';
+          e.preventDefault();
+          panelEl.style.transform = `translateY(${Math.max(0, dy)}px)`;
+          return;
+        }
+        // Allow aside scroll when it has content to scroll
+        const canScrollDown = aside.scrollTop < aside.scrollHeight - aside.clientHeight;
+        const canScrollUp = aside.scrollTop > 0;
+        if ((dy < 0 && canScrollDown) || (dy > 0 && canScrollUp)) {
+          return;
         }
       }
 
+      // Block everything else (pull-to-refresh, rubber-band, etc.)
       e.preventDefault();
+    };
+
+    const onEnd = (e: TouchEvent) => {
+      if (!panelVisibleRef.current || !isMobileRef.current) return;
+      const panelEl = panelElRef.current;
+      if (!panelEl) return;
+
+      if (dismissing) {
+        const dy = e.changedTouches[0].clientY - startY;
+        panelEl.style.transition = '';
+        if (dy > 80) {
+          panelEl.style.transform = '';
+          setPanelCollapsed(true);
+        } else {
+          panelEl.style.transform = 'translateY(0)';
+          setTimeout(() => { panelEl.style.transform = ''; }, 300);
+        }
+        dismissing = false;
+      }
     };
 
     document.addEventListener('touchstart', onStart, { passive: true });
     document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd, { passive: true });
     return () => {
       document.removeEventListener('touchstart', onStart);
       document.removeEventListener('touchmove', onMove);
-    };
-  }, []);
-
-  // Swipe-to-dismiss via drag handle only.
-  useEffect(() => {
-    const handle = handleRef.current;
-    const panelEl = panelElRef.current;
-    if (!handle || !panelEl) return;
-
-    let start: { x: number; y: number } | null = null;
-    let dragging = false;
-
-    const onStart = (e: TouchEvent) => {
-      start = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      dragging = false;
-      panelEl.style.transition = 'none';
-    };
-
-    const onMove = (e: TouchEvent) => {
-      if (!start) return;
-      const dx = e.touches[0].clientX - start.x;
-      const dy = e.touches[0].clientY - start.y;
-      const dismissDir = isMobileRef.current ? dy > 8 : dx > 8;
-      if (!dragging && dismissDir) dragging = true;
-      if (!dragging) return;
-      if (isMobileRef.current) panelEl.style.transform = `translateY(${Math.max(0, dy)}px)`;
-      else panelEl.style.transform = `translateX(${Math.max(0, dx)}px)`;
-    };
-
-    const onEnd = (e: TouchEvent) => {
-      if (!start) return;
-      const dx = e.changedTouches[0].clientX - start.x;
-      const dy = e.changedTouches[0].clientY - start.y;
-      panelEl.style.transition = '';
-      if (dragging) {
-        const dismiss = isMobileRef.current ? dy > 80 : dx > 80;
-        if (dismiss) {
-          panelEl.style.transform = '';
-          setPanelCollapsed(true);
-        } else {
-          panelEl.style.transform = isMobileRef.current ? 'translateY(0)' : 'translateX(0)';
-          setTimeout(() => { if (panelEl) panelEl.style.transform = ''; }, 300);
-        }
-      } else {
-        panelEl.style.transform = '';
-      }
-      start = null;
-      dragging = false;
-    };
-
-    handle.addEventListener('touchstart', onStart, { passive: true });
-    handle.addEventListener('touchmove', onMove, { passive: true });
-    handle.addEventListener('touchend', onEnd, { passive: true });
-
-    return () => {
-      handle.removeEventListener('touchstart', onStart);
-      handle.removeEventListener('touchmove', onMove);
-      handle.removeEventListener('touchend', onEnd);
+      document.removeEventListener('touchend', onEnd);
     };
   }, []);
 
@@ -228,11 +212,8 @@ export default function Home() {
           ),
         }}
       >
-        <div
-          ref={handleRef}
-          className="md:hidden flex justify-center items-center h-8 cursor-grab bg-white rounded-t-2xl"
-          style={{ touchAction: 'none' }}
-        >
+        {/* Visual drag handle — no listeners, dismiss handled by document touchmove */}
+        <div className="md:hidden flex justify-center items-center h-8 bg-white rounded-t-2xl">
           <div className="w-10 h-1 rounded-full bg-zinc-300" />
         </div>
         <PurchasePanel
