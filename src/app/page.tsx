@@ -77,48 +77,74 @@ export default function Home() {
     panelVisibleRef.current = panelVisible;
   }, [panelVisible]);
 
-  // Block pull-to-refresh / iOS rubber-band when panel is open.
-  // Allow aside scroll only when it has content to scroll in that direction.
-  // Detect swipe-down-to-dismiss when aside is at scrollTop 0.
   useEffect(() => {
     let startY = 0;
+    let startScrollTop = 0;
     let startTarget: EventTarget | null = null;
+    let dragging = false; // true = panel is following finger downward
+
+    const getAside = () => panelElRef.current?.querySelector('aside') ?? null;
 
     const onStart = (e: TouchEvent) => {
       startY = e.touches[0].clientY;
       startTarget = e.target;
+      dragging = false;
+      const aside = getAside();
+      // Record scrollTop at gesture start — not at end — to avoid false dismiss
+      startScrollTop = aside ? aside.scrollTop : 0;
     };
 
     const onMove = (e: TouchEvent) => {
       if (!panelVisibleRef.current || !isMobileRef.current) return;
-
       const panelEl = panelElRef.current;
       if (!panelEl) return;
-      const aside = panelEl.querySelector('aside');
+      const aside = getAside();
       const dy = e.touches[0].clientY - startY;
 
-      if (aside && aside.contains(startTarget as Node)) {
-        const canScrollDown = aside.scrollTop < aside.scrollHeight - aside.clientHeight;
-        const canScrollUp = aside.scrollTop > 0;
-        // Allow natural scroll if aside can scroll that way
-        if ((dy < 0 && canScrollDown) || (dy > 0 && canScrollUp)) return;
+      if (!dragging) {
+        const inPanel = panelEl.contains(startTarget as Node);
+        // Start dismiss drag only when: inside panel, scrollTop was 0 at start, swiping down
+        if (inPanel && startScrollTop === 0 && dy > 8) {
+          dragging = true;
+          panelEl.style.transition = 'none';
+        } else {
+          // Allow aside scroll if it has room
+          if (aside && aside.contains(startTarget as Node)) {
+            const canScrollDown = aside.scrollTop < aside.scrollHeight - aside.clientHeight;
+            const canScrollUp = aside.scrollTop > 0;
+            if ((dy < 0 && canScrollDown) || (dy > 0 && canScrollUp)) return;
+          }
+          e.preventDefault();
+          return;
+        }
       }
 
+      // Dragging — panel follows finger
       e.preventDefault();
+      panelEl.style.transform = `translateY(${Math.max(0, dy)}px)`;
     };
 
     const onEnd = (e: TouchEvent) => {
       if (!panelVisibleRef.current || !isMobileRef.current) return;
-
       const panelEl = panelElRef.current;
       if (!panelEl) return;
-      const aside = panelEl.querySelector('aside');
       const dy = e.changedTouches[0].clientY - startY;
 
-      // Dismiss when swiping down anywhere in panel and aside is at top
-      const atTop = !aside || aside.scrollTop === 0;
-      if (dy > 80 && atTop && panelEl.contains(startTarget as Node)) {
-        setPanelCollapsed(true);
+      if (dragging) {
+        panelEl.style.transition = '';
+        if (dy > 80) {
+          // Dismiss: snap to translateY(100%) then let React take over
+          panelEl.style.transform = 'translateY(100%)';
+          setTimeout(() => {
+            panelEl.style.transform = '';
+            setPanelCollapsed(true);
+          }, 300);
+        } else {
+          // Snap back to 0
+          panelEl.style.transform = 'translateY(0)';
+          setTimeout(() => { panelEl.style.transform = ''; }, 300);
+        }
+        dragging = false;
       }
     };
 
