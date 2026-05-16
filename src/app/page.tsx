@@ -180,7 +180,7 @@ export default function Home() {
                 ↑ Show panel
               </button>
             )}
-            {isMobile && !panelOpen && (
+            {isMobile && (
               <button
                 onClick={() => setSelectMode(v => !v)}
                 className={`px-4 py-2 rounded-full text-xs font-medium shadow-md transition-colors ${
