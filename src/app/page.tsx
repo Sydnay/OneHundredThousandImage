@@ -75,6 +75,13 @@ export default function Home() {
 
   useEffect(() => {
     panelVisibleRef.current = panelVisible;
+    // Clear any manual transform left over from gesture handlers
+    // so React's style prop takes full control on state change
+    const panelEl = panelElRef.current;
+    if (panelEl) {
+      panelEl.style.transform = '';
+      panelEl.style.transition = '';
+    }
   }, [panelVisible]);
 
   // Single document-level touch handler:
@@ -210,6 +217,7 @@ export default function Home() {
             ? { bottom: 0, left: 0, right: 0, transform: panelVisible ? 'translateY(0)' : 'translateY(100%)' }
             : { top: 0, right: 0, height: '100%', transform: panelVisible ? 'translateX(0)' : 'translateX(100%)' }
           ),
+          pointerEvents: panelVisible ? 'auto' : 'none',
         }}
       >
         {/* Visual drag handle — no listeners, dismiss handled by document touchmove */}
