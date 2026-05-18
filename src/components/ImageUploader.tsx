@@ -54,11 +54,32 @@ export default function ImageUploader({ onUpload, value }: Props) {
     if (!url) return;
     setUrlLoading(true);
     setError(null);
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => { setUrlLoading(false); setImage(url); };
-    img.onerror = () => { setUrlLoading(false); setError('Could not load image from that URL.'); };
-    img.src = url;
+
+    const tryDirect = (src: string, onFail: () => void) => {
+      const img = new Image();
+      img.onload = () => { setUrlLoading(false); setImage(src); };
+      img.onerror = onFail;
+      img.src = src;
+    };
+
+    const tryResolve = () => {
+      fetch(`/api/resolve-image?url=${encodeURIComponent(url)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.url) {
+            tryDirect(data.url, () => {
+              setUrlLoading(false);
+              setError('Could not load image from that URL.');
+            });
+          } else {
+            setUrlLoading(false);
+            setError(data.error ?? 'Could not load image from that URL.');
+          }
+        })
+        .catch(() => { setUrlLoading(false); setError('Could not load image from that URL.'); });
+    };
+
+    tryDirect(url, tryResolve);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onUpload]);
 
