@@ -83,8 +83,18 @@ export default function ImageUploader({ onUpload, value }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onUpload]);
 
+  const isValidUrl = (s: string) => {
+    try { const u = new URL(s); return u.protocol === 'http:' || u.protocol === 'https:'; }
+    catch { return false; }
+  };
+
   useEffect(() => {
     if (tab !== 'url' || !urlInput.trim()) return;
+    if (!isValidUrl(urlInput.trim())) {
+      setError('Please enter a valid URL (must start with http:// or https://)');
+      return;
+    }
+    setError(null);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => tryLoadUrl(urlInput.trim()), 600);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
