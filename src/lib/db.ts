@@ -1,7 +1,7 @@
 import { neon } from '@neondatabase/serverless';
 import type { Purchase, PurchasePayload } from './types';
 
-const sql = neon(process.env.DATABASE_URL!);
+const sql = neon(process.env.DATABASE_URL!, { fetchOptions: { cache: 'no-store' } });
 
 async function setup() {
   await sql`
