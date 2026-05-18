@@ -172,7 +172,7 @@ export default function Home() {
           onPurchaseClick={handlePurchaseClick}
         />
 
-        {!panelVisible && (
+{!panelVisible && (
           <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
             {panelOpen && panelCollapsed && (
               <button
