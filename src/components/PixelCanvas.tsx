@@ -120,11 +120,16 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
           gifImgMap.set(p.id, img);
         }
       } else if (!imageCache.current.has(p.image_url)) {
-        imageCache.current.set(p.image_url, null);
-        const img = new Image();
-        img.onload = () => { imageCache.current.set(p.image_url!, img); };
-        img.onerror = () => { console.error('[canvas] failed to load purchase image:', p.image_url); };
-        img.src = p.image_url;
+        // If this URL matches the current preview image, use it immediately
+        if (p.image_url === previewUrlRef.current && previewImageRef.current) {
+          imageCache.current.set(p.image_url, previewImageRef.current);
+        } else {
+          imageCache.current.set(p.image_url, null);
+          const img = new Image();
+          img.onload = () => { imageCache.current.set(p.image_url!, img); };
+          img.onerror = () => { console.error('[canvas] failed to load purchase image:', p.image_url); };
+          img.src = p.image_url;
+        }
       }
     });
   }, [purchases]);

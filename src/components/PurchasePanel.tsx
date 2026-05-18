@@ -122,9 +122,8 @@ if (!res.ok) { setError(data.error ?? 'Purchase failed'); return; }
       setSuccess(true);
       setLabel('');
       setLinkUrl('');
-      onImageUrlChange('');
       onPurchased();
-      setTimeout(() => { setSuccess(false); onClearSelection(); }, 2000);
+      setTimeout(() => { setSuccess(false); onImageUrlChange(''); onClearSelection(); }, 2000);
     } catch {
       setError('Network error. Please try again.');
     } finally {
