@@ -4,3 +4,15 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+# Prevent stale HTML - always revalidate the page
+[[headers]]
+  for = "/"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+# JS/CSS chunks are content-hashed - cache forever
+[[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
