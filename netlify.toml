@@ -11,6 +11,12 @@
   [headers.values]
     Cache-Control = "no-cache, no-store, must-revalidate"
 
+# API must never be cached - always return live data
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "no-store"
+
 # JS/CSS chunks are content-hashed - cache forever
 [[headers]]
   for = "/_next/static/*"
