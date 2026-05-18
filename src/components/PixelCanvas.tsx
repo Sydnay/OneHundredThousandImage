@@ -48,6 +48,7 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gifLayerRef = useRef<HTMLDivElement>(null);
   const gifImgMapRef = useRef<Map<number, HTMLImageElement>>(new Map());
+  const previewGifImgRef = useRef<HTMLImageElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const tooltipPurchaseIdRef = useRef<number | null>(null);
   const imageCache = useRef<Map<string, HTMLImageElement | null>>(new Map());
@@ -151,15 +152,37 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
 
   useEffect(() => {
     imageUrlRef.current = imageUrl;
-    if (!imageUrl) { previewImageRef.current = null; previewUrlRef.current = ''; return; }
+    const gifImg = previewGifImgRef.current;
+    if (!imageUrl) {
+      previewImageRef.current = null;
+      previewUrlRef.current = '';
+      if (gifImg) { gifImg.src = ''; gifImg.style.display = 'none'; }
+      return;
+    }
     if (imageUrl === previewUrlRef.current) return;
     previewUrlRef.current = imageUrl;
     previewImageRef.current = null;
+    if (gifImg) {
+      if (isGifUrl(imageUrl)) { gifImg.src = imageUrl; }
+      else { gifImg.src = ''; gifImg.style.display = 'none'; }
+    }
     const img = new Image();
     img.onload = () => { previewImageRef.current = img; };
     img.onerror = () => { console.error('[canvas] failed to load preview image:', imageUrl); };
     img.src = imageUrl;
   }, [imageUrl]);
+
+  // Create the preview GIF img element once on mount
+  useEffect(() => {
+    const gifLayer = gifLayerRef.current;
+    if (!gifLayer) return;
+    const img = document.createElement('img');
+    img.alt = '';
+    img.style.cssText = 'position:absolute;pointer-events:none;image-rendering:pixelated;display:none;opacity:0.9;';
+    gifLayer.appendChild(img);
+    previewGifImgRef.current = img;
+    return () => { img.remove(); previewGifImgRef.current = null; };
+  }, []);
 
   // ── coordinate helpers ────────────────────────────────────────────────────
 
@@ -290,13 +313,15 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
       const { x, y, w, h } = normalizeRect(ds.cellX, ds.cellY, de.cellX, de.cellY);
       const px = x * CELL, py = y * CELL, pw = w * CELL, ph = h * CELL;
 
+      const isGifPreview = fillTypeRef.current === 'image' && isGifUrl(imageUrlRef.current);
+
       // Fill preview
       if (fillTypeRef.current === 'color') {
         ctx.globalAlpha = 0.85;
         ctx.fillStyle = colorRef.current;
         ctx.fillRect(px, py, pw, ph);
         ctx.globalAlpha = 1;
-      } else {
+      } else if (!isGifPreview) {
         const img = previewImageRef.current;
         if (img) {
           ctx.globalAlpha = 0.9;
@@ -313,6 +338,23 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
       ctx.lineWidth = 1.5 / scale;
       ctx.strokeRect(px, py, pw, ph);
 
+      // GIF preview overlay — position animated img over the selection rect
+      const gifPreviewImg = previewGifImgRef.current;
+      if (gifPreviewImg) {
+        if (isGifPreview) {
+          gifPreviewImg.style.display = '';
+          gifPreviewImg.style.left   = `${x * CELL * scale + ox}px`;
+          gifPreviewImg.style.top    = `${y * CELL * scale + oy}px`;
+          gifPreviewImg.style.width  = `${w * CELL * scale}px`;
+          gifPreviewImg.style.height = `${h * CELL * scale}px`;
+        } else {
+          gifPreviewImg.style.display = 'none';
+        }
+      }
+    } else {
+      // No selection — hide GIF preview
+      const gifPreviewImg = previewGifImgRef.current;
+      if (gifPreviewImg) gifPreviewImg.style.display = 'none';
     }
 
     // Grid border
