@@ -15,6 +15,7 @@ interface Props {
   onColorChange: (v: string) => void;
   onImageUrlChange: (v: string) => void;
   onPurchased: () => void;
+  onNewPurchase: (purchase: Purchase) => void;
   onClose: () => void;
   onClearSelection: () => void;
 }
@@ -23,7 +24,7 @@ export default function PurchasePanel({
   selection, clickedPurchase,
   fillType, color, imageUrl,
   onFillTypeChange, onColorChange, onImageUrlChange,
-  onPurchased, onClose, onClearSelection,
+  onPurchased, onNewPurchase, onClose, onClearSelection,
 }: Props) {
   const [label, setLabel] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
@@ -122,7 +123,7 @@ if (!res.ok) { setError(data.error ?? 'Purchase failed'); return; }
       setSuccess(true);
       setLabel('');
       setLinkUrl('');
-      onPurchased();
+      onNewPurchase(data.purchase);
       setTimeout(() => { setSuccess(false); onImageUrlChange(''); onClearSelection(); }, 2000);
     } catch {
       setError('Network error. Please try again.');

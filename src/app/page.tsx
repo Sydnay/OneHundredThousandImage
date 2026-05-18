@@ -70,6 +70,11 @@ export default function Home() {
     setPanelCollapsed(true);
   }, []);
 
+  const handleNewPurchase = useCallback((purchase: Purchase) => {
+    setPurchases(prev => [...prev, purchase]);
+    fetchPurchases();
+  }, [fetchPurchases]);
+
   const panelOpen = !!(selection || clickedPurchase);
   const panelVisible = panelOpen && !panelCollapsed;
 
@@ -235,6 +240,7 @@ export default function Home() {
           onColorChange={setColor}
           onImageUrlChange={setImageUrl}
           onPurchased={fetchPurchases}
+          onNewPurchase={handleNewPurchase}
           onClose={handleCollapsePanel}
           onClearSelection={handleClearSelection}
         />
