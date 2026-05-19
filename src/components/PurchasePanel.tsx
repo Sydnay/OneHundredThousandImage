@@ -94,8 +94,6 @@ export default function PurchasePanel({
     }
   };
 
-  const fakeMode = process.env.NEXT_PUBLIC_PAYMENT_MODE !== 'real';
-
   const handlePurchase = async () => {
     if (!selection) return;
     if (fillType === 'image' && !imageUrl) {
@@ -104,41 +102,25 @@ export default function PurchasePanel({
     }
     setLoading(true);
     setError(null);
-
-    const payload = {
-      x: selection.x,
-      y: selection.y,
-      width: selection.width,
-      height: selection.height,
-      fill_type: fillType,
-      color: fillType === 'color' ? color : undefined,
-      image_url: fillType === 'image' ? imageUrl : undefined,
-      label: label || undefined,
-      link_url: linkUrl || undefined,
-    };
-
     try {
-      if (fakeMode) {
-        const res = await fetch('/api/purchase', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        const data = await res.json();
-        if (!res.ok) { setError(data.error ?? 'Purchase failed'); return; }
-        setSuccess(true);
-        onNewPurchase(data.purchase);
-        setTimeout(() => setSuccess(false), 3000);
-      } else {
-        const res = await fetch('/api/checkout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        const data = await res.json();
-        if (!res.ok) { setError(data.error ?? 'Checkout failed'); return; }
-        window.location.href = data.checkoutUrl;
-      }
+      const res = await fetch('/api/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          x: selection.x,
+          y: selection.y,
+          width: selection.width,
+          height: selection.height,
+          fill_type: fillType,
+          color: fillType === 'color' ? color : undefined,
+          image_url: fillType === 'image' ? imageUrl : undefined,
+          label: label || undefined,
+          link_url: linkUrl || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.error ?? 'Checkout failed'); return; }
+      window.location.href = data.checkoutUrl;
     } catch {
       setError('Network error. Please try again.');
     } finally {
@@ -351,7 +333,7 @@ export default function PurchasePanel({
                 disabled={loading || success}
                 className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm font-medium text-white transition-colors shadow-sm"
               >
-                {loading ? (fakeMode ? 'Saving…' : 'Redirecting to checkout…') : `Pay $${selection.totalPrice.toLocaleString()}`}
+                {loading ? 'Redirecting to checkout…' : `Pay $${selection.totalPrice.toLocaleString()}`}
               </button>
               <button
                 onClick={onClearSelection}
