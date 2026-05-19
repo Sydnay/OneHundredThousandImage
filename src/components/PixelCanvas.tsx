@@ -531,7 +531,8 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
           cell.cellX >= p.x && cell.cellX < p.x + p.width &&
           cell.cellY >= p.y && cell.cellY < p.y + p.height
         );
-        canvas.style.cursor = linked ? 'pointer' : 'crosshair';
+        const linkedIsUrl = linked ? (() => { try { const u = new URL(linked.link_url!); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; } })() : false;
+        canvas.style.cursor = linkedIsUrl ? 'pointer' : 'crosshair';
 
         if (linked && tooltip && container) {
           // Position tooltip relative to container
@@ -548,14 +549,21 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
           // Update content only when hovering a different purchase
           if (tooltipPurchaseIdRef.current !== linked.id) {
             tooltipPurchaseIdRef.current = linked.id;
-            let domain = '';
-            try { domain = new URL(linked.link_url!).hostname; } catch { /* ignore */ }
-            const favicon = tooltip.querySelector<HTMLImageElement>('[data-favicon]');
-            const domainEl = tooltip.querySelector('[data-domain]');
+            const favicon  = tooltip.querySelector<HTMLImageElement>('[data-favicon]');
+            const domainEl = tooltip.querySelector<HTMLElement>('[data-domain]');
             const labelEl  = tooltip.querySelector<HTMLElement>('[data-label]');
-            if (favicon)  { favicon.src = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`; }
-            if (domainEl) { domainEl.textContent = domain; }
-            if (labelEl)  { labelEl.textContent = linked.label ?? ''; labelEl.style.display = linked.label ? '' : 'none'; }
+            let isUrl = false;
+            try { const u = new URL(linked.link_url!); isUrl = u.protocol === 'http:' || u.protocol === 'https:'; } catch { /* plain text */ }
+            if (isUrl) {
+              const domain = new URL(linked.link_url!).hostname;
+              if (favicon)  { favicon.src = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=32`; favicon.style.display = ''; }
+              if (domainEl) { domainEl.textContent = domain; domainEl.style.display = ''; }
+              if (labelEl)  { labelEl.textContent = linked.label ?? ''; labelEl.style.display = linked.label ? '' : 'none'; }
+            } else {
+              if (favicon)  { favicon.src = ''; favicon.style.display = 'none'; }
+              if (domainEl) { domainEl.textContent = linked.link_url ?? ''; domainEl.style.display = ''; }
+              if (labelEl)  { labelEl.textContent = linked.label ?? ''; labelEl.style.display = linked.label ? '' : 'none'; }
+            }
           }
         } else if (!linked && tooltip) {
           tooltip.style.opacity = '0';
@@ -598,7 +606,8 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
             dragStartRef.current = null;
             dragEndRef.current   = null;
             onSelectionChange(null);
-            if (hit.link_url) {
+            const isUrl = (s: string) => { try { const u = new URL(s); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; } };
+            if (hit.link_url && isUrl(hit.link_url)) {
               window.open(hit.link_url, '_blank', 'noopener,noreferrer');
             } else {
               onPurchaseClick(hit);
@@ -702,7 +711,8 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
             cell.cellY >= p.y && cell.cellY < p.y + p.height
           );
           if (hit) {
-            if (hit.link_url) window.open(hit.link_url, '_blank', 'noopener,noreferrer');
+            const isUrl = (s: string) => { try { const u = new URL(s); return u.protocol === 'http:' || u.protocol === 'https:'; } catch { return false; } };
+            if (hit.link_url && isUrl(hit.link_url)) window.open(hit.link_url, '_blank', 'noopener,noreferrer');
             else onPurchaseClick(hit);
           }
         }

@@ -182,10 +182,16 @@ if (!res.ok) { setError(data.error ?? 'Purchase failed'); return; }
                 )}
               </div>
               {clickedPurchase.link_url && (
-                <a href={clickedPurchase.link_url} target="_blank" rel="noopener noreferrer"
-                  className="block text-xs text-indigo-500 hover:text-indigo-600 truncate mt-1">
-                  {clickedPurchase.link_url}
-                </a>
+                (() => {
+                  try { new URL(clickedPurchase.link_url); return (
+                    <a href={clickedPurchase.link_url} target="_blank" rel="noopener noreferrer"
+                      className="block text-xs text-indigo-500 hover:text-indigo-600 truncate mt-1">
+                      {clickedPurchase.link_url}
+                    </a>
+                  ); } catch { return (
+                    <p className="text-xs text-zinc-500 mt-1 break-words">{clickedPurchase.link_url}</p>
+                  ); }
+                })()
               )}
             </div>
             <button
@@ -229,9 +235,9 @@ if (!res.ok) { setError(data.error ?? 'Purchase failed'); return; }
                   placeholder="Your name or brand" maxLength={60} className={inputCls} />
               </div>
               <div>
-                <label className="block text-xs text-zinc-400 mb-1.5">Link URL <span className="text-zinc-300">(optional)</span></label>
-                <input type="url" value={editLinkUrl} onChange={e => setEditLinkUrl(e.target.value)}
-                  placeholder="https://yoursite.com" className={inputCls} />
+                <label className="block text-xs text-zinc-400 mb-1.5">Link or message <span className="text-zinc-300">(optional)</span></label>
+                <input type="text" value={editLinkUrl} onChange={e => setEditLinkUrl(e.target.value)}
+                  placeholder="https://yoursite.com or any text" className={inputCls} />
               </div>
             </div>
 
@@ -310,9 +316,9 @@ if (!res.ok) { setError(data.error ?? 'Purchase failed'); return; }
                   placeholder="Your name or brand" maxLength={60} className={inputCls} />
               </div>
               <div>
-                <label className="block text-xs text-zinc-400 mb-1.5">Link URL <span className="text-zinc-300">(optional)</span></label>
-                <input type="url" value={linkUrl} onChange={e => setLinkUrl(e.target.value)}
-                  placeholder="https://yoursite.com" className={inputCls} />
+                <label className="block text-xs text-zinc-400 mb-1.5">Link or message <span className="text-zinc-300">(optional)</span></label>
+                <input type="text" value={linkUrl} onChange={e => setLinkUrl(e.target.value)}
+                  placeholder="https://yoursite.com or any text" className={inputCls} />
               </div>
             </div>
 
