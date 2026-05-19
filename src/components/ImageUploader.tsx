@@ -89,11 +89,8 @@ export default function ImageUploader({ onUpload, value }: Props) {
   };
 
   useEffect(() => {
-    if (tab !== 'url' || !urlInput.trim()) return;
-    if (!isValidUrl(urlInput.trim())) {
-      setError('Please enter a valid URL (must start with http:// or https://)');
-      return;
-    }
+    if (tab !== 'url' || !urlInput.trim()) { setError(null); return; }
+    if (!isValidUrl(urlInput.trim())) return; // not a URL yet — just wait, no error
     setError(null);
     if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(() => tryLoadUrl(urlInput.trim()), 600);
