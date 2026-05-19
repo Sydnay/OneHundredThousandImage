@@ -1,4 +1,4 @@
-export const metadata = { title: 'Privacy Policy — 100K Pixel Grid' };
+export const metadata = { title: 'Privacy Policy — Million Dollar Grid' };
 
 export default function PrivacyPage() {
   return (
@@ -38,7 +38,7 @@ export default function PrivacyPage() {
 
         <div>
           <h2 className="font-semibold text-base mb-2">6. Contact</h2>
-          <p>Privacy questions: <a href="mailto:denustininsustinin@gmail.com" className="text-indigo-600 hover:underline">denustininsustinin@gmail.com</a>.</p>
+          <p>Privacy questions: <a href="mailto:ytsmartmuesli@gmail.com" className="text-indigo-600 hover:underline">ytsmartmuesli@gmail.com</a>.</p>
         </div>
       </section>
 

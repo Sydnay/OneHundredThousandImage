@@ -2,8 +2,8 @@ import { createPurchase } from '@/lib/db';
 import type { PurchasePayload } from '@/lib/types';
 import { isUrlUnsafe } from '@/lib/safebrowsing';
 
-const COLS = 400;
-const ROWS = 250;
+const COLS = 1000;
+const ROWS = 1000;
 
 export async function POST(request: Request) {
   let body: PurchasePayload;

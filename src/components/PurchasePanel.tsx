@@ -135,8 +135,8 @@ export default function PurchasePanel({
       {/* Header */}
       <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between shrink-0">
         <div>
-          <h1 className="text-sm font-semibold tracking-wide text-zinc-900">100K Pixel Grid</h1>
-          <p className="text-xs text-zinc-400 mt-0.5">400 × 250 · $1 per cell</p>
+          <h1 className="text-sm font-semibold tracking-wide text-zinc-900">Million Dollar Grid</h1>
+          <p className="text-xs text-zinc-400 mt-0.5">1000 × 1000 · $1 per cell</p>
         </div>
         <button
           onClick={onClose}
@@ -152,11 +152,11 @@ export default function PurchasePanel({
             <p className="text-xs text-zinc-500 leading-relaxed">
               Click and drag on the grid to select an area. Each cell costs{' '}
               <span className="text-zinc-800 font-medium">$1</span>.
-              Your image or color stays there permanently.
+              Your image or color stays there permanently. 1,000,000 cells total.
             </p>
             <div className="rounded-xl bg-zinc-50 border border-zinc-100 px-3 py-3 text-xs space-y-2">
-              <div className="flex justify-between"><span className="text-zinc-400">Grid size</span><span className="text-zinc-700 font-medium">400 × 250</span></div>
-              <div className="flex justify-between"><span className="text-zinc-400">Total cells</span><span className="text-zinc-700 font-medium">100,000</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Grid size</span><span className="text-zinc-700 font-medium">1000 × 1000</span></div>
+              <div className="flex justify-between"><span className="text-zinc-400">Total cells</span><span className="text-zinc-700 font-medium">1,000,000</span></div>
               <div className="flex justify-between"><span className="text-zinc-400">Price per cell</span><span className="text-zinc-700 font-medium">$1.00</span></div>
             </div>
             <p className="text-xs text-zinc-300">

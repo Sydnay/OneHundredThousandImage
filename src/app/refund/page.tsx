@@ -1,4 +1,4 @@
-export const metadata = { title: 'Refund Policy — 100K Pixel Grid' };
+export const metadata = { title: 'Refund Policy — Million Dollar Grid' };
 
 export default function RefundPage() {
   return (
@@ -24,7 +24,7 @@ export default function RefundPage() {
 
         <div>
           <h2 className="font-semibold text-base mb-2">How to Request a Refund</h2>
-          <p>Email <a href="mailto:denustininsustinin@gmail.com" className="text-indigo-600 hover:underline">denustininsustinin@gmail.com</a> with your order details within 7 days of purchase. Refunds are processed through Paddle and may take 5–10 business days to appear.</p>
+          <p>Email <a href="mailto:ytsmartmuesli@gmail.com" className="text-indigo-600 hover:underline">ytsmartmuesli@gmail.com</a> with your order details within 7 days of purchase. Refunds are processed through Paddle and may take 5–10 business days to appear.</p>
         </div>
       </section>
 

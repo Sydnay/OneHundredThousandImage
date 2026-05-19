@@ -1,4 +1,4 @@
-export const metadata = { title: 'Terms of Service — 100K Pixel Grid' };
+export const metadata = { title: 'Terms of Service — Million Dollar Grid' };
 
 export default function TermsPage() {
   return (
@@ -9,7 +9,7 @@ export default function TermsPage() {
       <section className="space-y-6 text-sm leading-relaxed">
         <div>
           <h2 className="font-semibold text-base mb-2">1. Service Description</h2>
-          <p>100K Pixel Grid allows users to purchase rectangular areas on a 400×250 pixel grid. Each cell costs $1 USD. Purchased areas may display a solid color or an uploaded image and remain on the grid permanently.</p>
+          <p>Million Dollar Grid allows users to purchase rectangular areas on a 1000×1000 pixel grid. Each cell costs $1 USD. Purchased areas may display a solid color or an uploaded image and remain on the grid permanently.</p>
         </div>
 
         <div>
@@ -39,7 +39,7 @@ export default function TermsPage() {
 
         <div>
           <h2 className="font-semibold text-base mb-2">7. Contact</h2>
-          <p>Questions? Email us at <a href="mailto:denustininsustinin@gmail.com" className="text-indigo-600 hover:underline">denustininsustinin@gmail.com</a>.</p>
+          <p>Questions? Email us at <a href="mailto:ytsmartmuesli@gmail.com" className="text-indigo-600 hover:underline">ytsmartmuesli@gmail.com</a>.</p>
         </div>
       </section>
 

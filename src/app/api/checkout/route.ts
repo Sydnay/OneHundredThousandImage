@@ -5,8 +5,8 @@ const paddle = new Paddle(process.env.PADDLE_API_KEY!, {
   logLevel: LogLevel.none,
 });
 
-const COLS = 400;
-const ROWS = 250;
+const COLS = 1000;
+const ROWS = 1000;
 
 export async function POST(request: Request) {
   let body: { x: number; y: number; width: number; height: number; fill_type: string; color?: string; image_url?: string; label?: string; link_url?: string };

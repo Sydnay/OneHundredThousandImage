@@ -3,8 +3,8 @@
 import { useEffect, useRef, useCallback } from 'react';
 import type { Purchase, NormalizedSelection } from '@/lib/types';
 
-const COLS = 400;
-const ROWS = 250;
+const COLS = 1000;
+const ROWS = 1000;
 const CELL = 3;
 const GRID_W = COLS * CELL;
 const GRID_H = ROWS * CELL;
