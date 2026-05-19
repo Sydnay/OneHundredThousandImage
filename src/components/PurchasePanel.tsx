@@ -102,8 +102,8 @@ export default function PurchasePanel({
     }
     setLoading(true);
     setError(null);
-try {
-      const res = await fetch('/api/purchase', {
+    try {
+      const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -119,12 +119,8 @@ try {
         }),
       });
       const data = await res.json();
-if (!res.ok) { setError(data.error ?? 'Purchase failed'); return; }
-      setSuccess(true);
-      setLabel('');
-      setLinkUrl('');
-      onNewPurchase(data.purchase);
-      setTimeout(() => { setSuccess(false); onImageUrlChange(''); onClearSelection(); }, 2000);
+      if (!res.ok) { setError(data.error ?? 'Checkout failed'); return; }
+      window.location.href = data.checkoutUrl;
     } catch {
       setError('Network error. Please try again.');
     } finally {
@@ -337,7 +333,7 @@ if (!res.ok) { setError(data.error ?? 'Purchase failed'); return; }
                 disabled={loading || success}
                 className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm font-medium text-white transition-colors shadow-sm"
               >
-                {loading ? 'Processing…' : success ? 'Done!' : `Purchase for $${selection.totalPrice.toLocaleString()}`}
+                {loading ? 'Redirecting to checkout…' : `Pay $${selection.totalPrice.toLocaleString()}`}
               </button>
               <button
                 onClick={onClearSelection}
