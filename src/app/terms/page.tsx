@@ -10,7 +10,7 @@ export default function TermsPage() {
         <div>
           <h2 className="font-semibold text-base mb-2">1. Общие положения</h2>
           <p>Настоящий документ является публичной офертой (далее — «Оферта») самозанятого
-          <strong> [ФИО], ИНН [ИНН]</strong> (далее — «Исполнитель») и содержит все существенные условия
+          <strong> (плательщик НПД), ИНН [ИНН]</strong> (далее — «Исполнитель») и содержит все существенные условия
           оказания услуги по размещению изображения или цвета в выбранной области на сайте Million Dollar Grid.
           Оплата заказа означает полное и безоговорочное принятие условий настоящей Оферты (акцепт).</p>
         </div>
@@ -50,7 +50,7 @@ export default function TermsPage() {
 
         <div>
           <h2 className="font-semibold text-base mb-2">7. Реквизиты и контакты</h2>
-          <p>Самозанятый: <strong>[ФИО]</strong><br />
+          <p>Статус: <strong>самозанятый (плательщик налога на профессиональный доход)</strong><br />
           ИНН: <strong>[ИНН]</strong><br />
           Email: <a href="mailto:ytsmartmuesli@gmail.com" className="text-indigo-600 hover:underline">ytsmartmuesli@gmail.com</a></p>
         </div>

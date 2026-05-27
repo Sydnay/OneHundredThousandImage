@@ -206,6 +206,16 @@ export default function Home() {
             )}
           </div>
         )}
+
+        {/* Footer with legal links */}
+        {!panelVisible && (
+          <div className="absolute bottom-2 left-3 hidden md:flex gap-3 text-[11px] text-zinc-400">
+            <a href="/contacts" className="hover:text-zinc-600 transition-colors">Реквизиты</a>
+            <a href="/terms" className="hover:text-zinc-600 transition-colors">Оферта</a>
+            <a href="/privacy" className="hover:text-zinc-600 transition-colors">Конфиденциальность</a>
+            <a href="/refund" className="hover:text-zinc-600 transition-colors">Возврат</a>
+          </div>
+        )}
       </div>
 
       {/* Backdrop — tap outside panel to collapse */}
