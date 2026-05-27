@@ -303,8 +303,12 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
     // Hover cell
     const hover = hoverCellRef.current;
     if (hover && !isDraggingRef.current && !isResizingRef.current) {
-      ctx.fillStyle = 'rgba(99,102,241,0.08)';
-      ctx.fillRect(hover.cellX * CELL, hover.cellY * CELL, CELL, CELL);
+      const hx = hover.cellX * CELL, hy = hover.cellY * CELL;
+      ctx.fillStyle = 'rgba(99,102,241,0.28)';
+      ctx.fillRect(hx, hy, CELL, CELL);
+      ctx.strokeStyle = '#6366f1';
+      ctx.lineWidth = 1.5 / scale;
+      ctx.strokeRect(hx, hy, CELL, CELL);
     }
 
     // Active selection + fill preview
