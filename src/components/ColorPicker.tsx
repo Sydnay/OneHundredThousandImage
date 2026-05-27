@@ -79,19 +79,19 @@ export default function ColorPicker({ value, onChange }: Props) {
       {/* Sliders */}
       <div className="space-y-3">
         <div>
-          <label className="block text-xs text-zinc-400 mb-1.5">Hue</label>
+          <label className="block text-xs text-zinc-400 mb-1.5">Оттенок</label>
           <input type="range" min={0} max={360} value={hsl[0]}
             onChange={e => updateFromHsl(+e.target.value, hsl[1], hsl[2])}
             className="w-full" style={{ background: hueGradient }} />
         </div>
         <div>
-          <label className="block text-xs text-zinc-400 mb-1.5">Saturation</label>
+          <label className="block text-xs text-zinc-400 mb-1.5">Насыщенность</label>
           <input type="range" min={0} max={100} value={hsl[1]}
             onChange={e => updateFromHsl(hsl[0], +e.target.value, hsl[2])}
             className="w-full" style={{ background: satGradient }} />
         </div>
         <div>
-          <label className="block text-xs text-zinc-400 mb-1.5">Lightness</label>
+          <label className="block text-xs text-zinc-400 mb-1.5">Яркость</label>
           <input type="range" min={0} max={100} value={hsl[2]}
             onChange={e => updateFromHsl(hsl[0], hsl[1], +e.target.value)}
             className="w-full" style={{ background: litGradient }} />

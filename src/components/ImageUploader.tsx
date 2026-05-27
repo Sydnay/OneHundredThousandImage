@@ -40,10 +40,10 @@ export default function ImageUploader({ onUpload, value }: Props) {
       fd.append('file', file);
       const res = await fetch('/api/upload', { method: 'POST', body: fd });
       const data = await res.json();
-      if (!res.ok) { setError(data.error ?? 'Upload failed'); return; }
+      if (!res.ok) { setError(data.error ?? 'Не удалось загрузить'); return; }
       setImage(data.url);
     } catch {
-      setError('Upload failed. Please try again.');
+      setError('Не удалось загрузить. Попробуйте ещё раз.');
     } finally {
       setUploading(false);
     }
@@ -69,14 +69,14 @@ export default function ImageUploader({ onUpload, value }: Props) {
           if (data.url) {
             tryDirect(data.url, () => {
               setUrlLoading(false);
-              setError('Could not load image from that URL.');
+              setError('Не удалось загрузить изображение по этой ссылке.');
             });
           } else {
             setUrlLoading(false);
-            setError(data.error ?? 'Could not load image from that URL.');
+            setError(data.error ?? 'Не удалось загрузить изображение по этой ссылке.');
           }
         })
-        .catch(() => { setUrlLoading(false); setError('Could not load image from that URL.'); });
+        .catch(() => { setUrlLoading(false); setError('Не удалось загрузить изображение по этой ссылке.'); });
     };
 
     tryDirect(url, tryResolve);
@@ -103,8 +103,8 @@ export default function ImageUploader({ onUpload, value }: Props) {
   return (
     <div className="space-y-2">
       <div className="flex bg-zinc-100 rounded-lg p-0.5">
-        <button onClick={() => { setTab('file'); setError(null); }} className={tabCls('file')}>Upload file</button>
-        <button onClick={() => { setTab('url'); setError(null); }} className={tabCls('url')}>Paste URL</button>
+        <button onClick={() => { setTab('file'); setError(null); }} className={tabCls('file')}>Загрузить файл</button>
+        <button onClick={() => { setTab('url'); setError(null); }} className={tabCls('url')}>Вставить ссылку</button>
       </div>
 
       {preview && (
@@ -122,7 +122,7 @@ export default function ImageUploader({ onUpload, value }: Props) {
             <input
               type="url" value={urlInput}
               onChange={e => { setUrlInput(e.target.value); setPreview(null); onUpload(''); }}
-              placeholder="Paste a different URL…"
+              placeholder="Вставьте другую ссылку…"
               className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors"
             />
           )}
@@ -142,13 +142,13 @@ export default function ImageUploader({ onUpload, value }: Props) {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
               </svg>
-              <span className="text-xs text-zinc-400">Uploading…</span>
+              <span className="text-xs text-zinc-400">Загрузка…</span>
             </div>
           ) : (
             <span className="text-xs text-zinc-400 text-center px-2">
-              Drop image here or <span className="text-indigo-500">click to browse</span>
+              Перетащите изображение или <span className="text-indigo-500">нажмите для выбора</span>
               <br />
-              <span className="text-zinc-300 text-[11px]">JPEG, PNG, GIF, WebP — max 5 MB</span>
+              <span className="text-zinc-300 text-[11px]">JPEG, PNG, GIF, WebP — до 5 МБ</span>
             </span>
           )}
           <input ref={inputRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp"
@@ -184,7 +184,7 @@ export default function ImageUploader({ onUpload, value }: Props) {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"/>
               </svg>
-              <span className="text-xs text-zinc-400">Loading image…</span>
+              <span className="text-xs text-zinc-400">Загрузка изображения…</span>
             </div>
           )}
         </div>

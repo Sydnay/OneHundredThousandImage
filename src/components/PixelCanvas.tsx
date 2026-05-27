@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import type { Purchase, NormalizedSelection } from '@/lib/types';
+import { priceForCells } from '@/lib/pricing';
 
 const COLS = 1000;
 const ROWS = 1000;
@@ -587,7 +588,7 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
       const de = dragEndRef.current;
       if (ds && de) {
         const { x, y, w, h } = normalizeRect(ds.cellX, ds.cellY, de.cellX, de.cellY);
-        onSelectionChange({ x, y, width: w, height: h, cellCount: w * h, totalPrice: w * h });
+        onSelectionChange({ x, y, width: w, height: h, cellCount: w * h, totalPrice: priceForCells(w * h) });
       }
       return;
     }
@@ -615,7 +616,7 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
             return;
           }
         }
-        onSelectionChange({ x, y, width: w, height: h, cellCount: w * h, totalPrice: w * h });
+        onSelectionChange({ x, y, width: w, height: h, cellCount: w * h, totalPrice: priceForCells(w * h) });
       }
     }
   }, [onSelectionChange, onPurchaseClick]);
@@ -721,7 +722,7 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
         const ds = dragStartRef.current, de = dragEndRef.current;
         if (ds && de) {
           const { x, y, w, h } = normalizeRect(ds.cellX, ds.cellY, de.cellX, de.cellY);
-          onSelectionChange({ x, y, width: w, height: h, cellCount: w * h, totalPrice: w * h });
+          onSelectionChange({ x, y, width: w, height: h, cellCount: w * h, totalPrice: priceForCells(w * h) });
         }
       }
       if (e.touches.length === 0) {

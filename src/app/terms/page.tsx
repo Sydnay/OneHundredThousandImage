@@ -1,49 +1,62 @@
-export const metadata = { title: 'Terms of Service — Million Dollar Grid' };
+export const metadata = { title: 'Публичная оферта — Million Dollar Grid' };
 
 export default function TermsPage() {
   return (
     <main className="max-w-2xl mx-auto px-6 py-12 text-zinc-800">
-      <h1 className="text-2xl font-bold mb-6">Terms of Service</h1>
-      <p className="text-sm text-zinc-400 mb-8">Last updated: May 2026</p>
+      <h1 className="text-2xl font-bold mb-6">Публичная оферта</h1>
+      <p className="text-sm text-zinc-400 mb-8">Действует с мая 2026 года</p>
 
       <section className="space-y-6 text-sm leading-relaxed">
         <div>
-          <h2 className="font-semibold text-base mb-2">1. Service Description</h2>
-          <p>Million Dollar Grid allows users to purchase rectangular areas on a 1000×1000 pixel grid. Each cell costs $1 USD. Purchased areas may display a solid color or an uploaded image and remain on the grid permanently.</p>
+          <h2 className="font-semibold text-base mb-2">1. Общие положения</h2>
+          <p>Настоящий документ является публичной офертой (далее — «Оферта») самозанятого
+          <strong> [ФИО], ИНН [ИНН]</strong> (далее — «Исполнитель») и содержит все существенные условия
+          оказания услуги по размещению изображения или цвета в выбранной области на сайте Million Dollar Grid.
+          Оплата заказа означает полное и безоговорочное принятие условий настоящей Оферты (акцепт).</p>
         </div>
 
         <div>
-          <h2 className="font-semibold text-base mb-2">2. Purchases</h2>
-          <p>All purchases are final. Once a cell area is purchased, it is assigned to the buyer and cannot be transferred or refunded except as described in the Refund Policy. Overlapping areas are not permitted; the system enforces this automatically.</p>
+          <h2 className="font-semibold text-base mb-2">2. Предмет договора</h2>
+          <p>Исполнитель предоставляет Заказчику цифровую услугу — размещение выбранного Заказчиком
+          изображения или цвета в прямоугольной области на сетке 1000×1000 клеток. Стоимость составляет
+          10 ₽ за одну клетку. Размещённый контент отображается на сайте бессрочно.</p>
         </div>
 
         <div>
-          <h2 className="font-semibold text-base mb-2">3. Content Guidelines</h2>
-          <p>Users may not upload images or display content that is illegal, obscene, defamatory, or infringes third-party intellectual property rights. We reserve the right to remove content that violates these guidelines without refund.</p>
+          <h2 className="font-semibold text-base mb-2">3. Порядок оказания услуги</h2>
+          <p>Заказчик выбирает область, загружает изображение или выбирает цвет и оплачивает заказ.
+          После поступления оплаты область автоматически отображается на сетке. Услуга считается оказанной
+          в момент появления области на сайте. Кассовый чек направляется на указанный Заказчиком email.</p>
         </div>
 
         <div>
-          <h2 className="font-semibold text-base mb-2">4. Payment Processing</h2>
-          <p>Payments are processed by Paddle.com Market Limited ("Paddle"), which acts as Merchant of Record. By completing a purchase you also agree to Paddle's terms of service.</p>
+          <h2 className="font-semibold text-base mb-2">4. Требования к контенту</h2>
+          <p>Запрещается размещать материалы, нарушающие законодательство РФ, права третьих лиц,
+          содержащие порнографию, насилие, разжигание ненависти, а также вводящие в заблуждение.
+          Исполнитель вправе удалить такой контент без возврата средств.</p>
         </div>
 
         <div>
-          <h2 className="font-semibold text-base mb-2">5. Availability</h2>
-          <p>We aim to keep purchased content visible indefinitely, but do not guarantee uninterrupted availability. We are not liable for temporary outages.</p>
+          <h2 className="font-semibold text-base mb-2">5. Оплата</h2>
+          <p>Оплата производится через платёжный сервис ЮKassa (АО «ЮMoney»). Исполнитель не хранит
+          и не обрабатывает данные банковских карт.</p>
         </div>
 
         <div>
-          <h2 className="font-semibold text-base mb-2">6. Changes</h2>
-          <p>We may update these terms at any time. Continued use of the service after changes constitutes acceptance.</p>
+          <h2 className="font-semibold text-base mb-2">6. Ответственность</h2>
+          <p>Исполнитель прилагает усилия для бесперебойной работы сайта, но не несёт ответственности
+          за временную недоступность сервиса по причинам, не зависящим от него.</p>
         </div>
 
         <div>
-          <h2 className="font-semibold text-base mb-2">7. Contact</h2>
-          <p>Questions? Email us at <a href="mailto:ytsmartmuesli@gmail.com" className="text-indigo-600 hover:underline">ytsmartmuesli@gmail.com</a>.</p>
+          <h2 className="font-semibold text-base mb-2">7. Реквизиты и контакты</h2>
+          <p>Самозанятый: <strong>[ФИО]</strong><br />
+          ИНН: <strong>[ИНН]</strong><br />
+          Email: <a href="mailto:ytsmartmuesli@gmail.com" className="text-indigo-600 hover:underline">ytsmartmuesli@gmail.com</a></p>
         </div>
       </section>
 
-      <a href="/" className="inline-block mt-10 text-xs text-zinc-400 hover:text-zinc-600">← Back to grid</a>
+      <a href="/" className="inline-block mt-10 text-xs text-zinc-400 hover:text-zinc-600">← На главную</a>
     </main>
   );
 }

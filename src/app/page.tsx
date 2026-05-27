@@ -184,7 +184,7 @@ export default function Home() {
                 onClick={() => setPanelCollapsed(false)}
                 className="px-4 py-2 rounded-full text-xs font-medium shadow-md bg-indigo-600 text-white transition-colors"
               >
-                ↑ Show panel
+                ↑ Показать панель
               </button>
             )}
             {isMobile && (
@@ -196,12 +196,12 @@ export default function Home() {
                     : 'bg-white/90 text-zinc-700 border border-zinc-200'
                 }`}
               >
-                {selectMode ? 'Tap & drag to select' : '✏ Select area'}
+                {selectMode ? 'Коснитесь и тяните' : '✏ Выделить область'}
               </button>
             )}
             {!panelOpen && (
               <div className="pointer-events-none bg-white/80 backdrop-blur-sm border border-zinc-200 rounded-full px-4 py-2 text-xs text-zinc-500 shadow-sm whitespace-nowrap">
-                {isMobile ? 'Pinch to zoom · tap to view' : 'Drag to select · scroll to zoom · click to view'}
+                {isMobile ? 'Щипок — масштаб · касание — просмотр' : 'Выделите мышью · колёсико — масштаб · клик — просмотр'}
               </div>
             )}
           </div>
