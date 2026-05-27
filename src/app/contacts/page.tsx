@@ -13,7 +13,7 @@ export default function ContactsPage() {
           </div>
           <div className="flex justify-between">
             <span className="text-zinc-500">ИНН</span>
-            <span className="text-zinc-800 font-medium">[ИНН]</span>
+            <span className="text-zinc-800 font-medium">631819270208</span>
           </div>
           <div className="flex justify-between">
             <span className="text-zinc-500">Email</span>
