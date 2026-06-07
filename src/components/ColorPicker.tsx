@@ -102,7 +102,7 @@ export default function ColorPicker({ value, onChange }: Props) {
       <div>
         <label className="block text-xs text-zinc-400 mb-1.5">Hex</label>
         <input type="text" value={hexInput} onChange={handleHexInput} maxLength={7}
-          className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-sm font-mono text-zinc-800 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors" />
+          className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-base md:text-sm font-mono text-zinc-800 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors" />
       </div>
     </div>
   );

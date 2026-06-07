@@ -135,10 +135,11 @@ export default function PurchasePanel({
     }
   };
 
-  const inputCls = 'w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors';
+  // text-base (16px) on mobile prevents iOS Safari auto-zoom on focus; md:text-sm restores 14px on desktop
+  const inputCls = 'w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-base md:text-sm text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors';
 
   return (
-    <aside className="w-screen md:w-72 max-h-[75vh] md:max-h-none md:h-full flex flex-col bg-white border-t md:border-t-0 md:border-l border-zinc-200 md:rounded-none overflow-y-auto overscroll-y-contain shadow-xl md:shadow-none" style={{ touchAction: 'pan-y' }}>
+    <aside className="w-full md:w-72 max-h-[75vh] supports-[height:100dvh]:max-h-[75dvh] md:max-h-none md:h-full flex flex-col bg-white border-t md:border-t-0 md:border-l border-zinc-200 md:rounded-none overflow-y-auto overscroll-y-contain shadow-xl md:shadow-none" style={{ touchAction: 'pan-y' }}>
       {/* Header */}
       <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between shrink-0">
         <div>
@@ -147,7 +148,7 @@ export default function PurchasePanel({
         </div>
         <button
           onClick={onClose}
-          className="w-6 h-6 flex items-center justify-center rounded-full text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors text-base leading-none"
+          className="w-9 h-9 -mr-1.5 flex items-center justify-center rounded-full text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors text-xl leading-none"
           title="Закрыть"
         >×</button>
       </div>
@@ -325,7 +326,8 @@ export default function PurchasePanel({
               </div>
               <div>
                 <label className="block text-xs text-zinc-400 mb-1.5">Email <span className="text-zinc-300">(для чека)</span></label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)}
+                <input type="email" inputMode="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)}
+                  onFocus={e => { const el = e.currentTarget; setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 300); }}
                   placeholder="you@example.com" maxLength={120} className={inputCls} />
               </div>
             </div>

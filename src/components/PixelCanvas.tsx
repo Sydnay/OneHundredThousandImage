@@ -10,6 +10,7 @@ const CELL = 3;
 const GRID_W = COLS * CELL;
 const GRID_H = ROWS * CELL;
 const EDGE_THRESH = 8; // px from edge to trigger resize cursor
+const TAP_THRESHOLD = 8; // px of finger movement before a touch counts as a drag (not a tap)
 
 interface Props {
   purchases: Purchase[];
@@ -682,10 +683,14 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
 
       if (state.type === 'pan' && touches.length === 1) {
         const t = touches[0];
+        // Ignore sub-threshold jitter so a tap (with natural finger tremor) still registers as a tap
+        if (!state.moved && Math.hypot(t.clientX - state.startX, t.clientY - state.startY) < TAP_THRESHOLD) return;
         offsetRef.current = clampOffset(t.clientX - panStartRef.current.x, t.clientY - panStartRef.current.y);
         state.moved = true;
       } else if (state.type === 'select' && touches.length === 1) {
-        const cell = screenToCell(touches[0].clientX, touches[0].clientY);
+        const t = touches[0];
+        if (!state.moved && Math.hypot(t.clientX - state.startX, t.clientY - state.startY) < TAP_THRESHOLD) return;
+        const cell = screenToCell(t.clientX, t.clientY);
         if (cell) dragEndRef.current = cell;
         state.moved = true;
       } else if (state.type === 'pinch' && touches.length >= 2) {
@@ -729,6 +734,16 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
           onSelectionChange({ x, y, width: w, height: h, cellCount: w * h, totalPrice: priceForCells(w * h) });
         }
       }
+      // One finger lifted during a pinch but another remains — hand off to pan
+      // so the remaining finger keeps controlling the canvas instead of going dead.
+      if (state?.type === 'pinch' && e.touches.length === 1) {
+        const t = e.touches[0];
+        isPanningRef.current = true;
+        panStartRef.current = { x: t.clientX - offsetRef.current.x, y: t.clientY - offsetRef.current.y };
+        touchRef.current = { type: 'pan', startX: t.clientX, startY: t.clientY, moved: true };
+        return;
+      }
+
       if (e.touches.length === 0) {
         isPanningRef.current = false;
         touchRef.current = null;

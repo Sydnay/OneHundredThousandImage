@@ -164,7 +164,7 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="flex h-screen overflow-hidden bg-slate-100 relative">
+    <main className="flex h-screen supports-[height:100dvh]:h-[100dvh] overflow-hidden bg-slate-100 relative">
       <div className="flex-1 relative overflow-hidden">
         <PixelCanvas
           purchases={purchases}

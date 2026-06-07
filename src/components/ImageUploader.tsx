@@ -120,10 +120,10 @@ export default function ImageUploader({ onUpload, value }: Props) {
           </div>
           {tab === 'url' && (
             <input
-              type="url" value={urlInput}
+              type="url" inputMode="url" value={urlInput}
               onChange={e => { setUrlInput(e.target.value); setPreview(null); onUpload(''); }}
               placeholder="Вставьте другую ссылку…"
-              className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors"
+              className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-base md:text-xs text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors"
             />
           )}
         </div>
@@ -160,7 +160,7 @@ export default function ImageUploader({ onUpload, value }: Props) {
         <div className="space-y-2">
           <div className="relative">
             <input
-              type="url" value={urlInput}
+              type="url" inputMode="url" value={urlInput}
               onChange={e => setUrlInput(e.target.value)}
               onPaste={e => {
                 const items = e.clipboardData?.items;
@@ -175,7 +175,7 @@ export default function ImageUploader({ onUpload, value }: Props) {
                 }
               }}
               placeholder="https://example.com/image.png"
-              className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-xs text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors pr-8"
+              className="w-full bg-white border border-zinc-200 rounded-lg px-3 py-2 text-base md:text-xs text-zinc-800 placeholder:text-zinc-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-colors pr-8"
             />
           </div>
           {urlLoading && (
