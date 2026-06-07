@@ -12,7 +12,7 @@ const GRID_H = ROWS * CELL;
 const EDGE_THRESH = 8; // px from edge to trigger resize cursor
 const TAP_THRESHOLD = 8; // px of finger movement before a touch counts as a drag (not a tap)
 const BLOCK = 50; // cells per major grid division (coarse 50×50 blocks)
-const HOVER_MIN_PX = 16; // minimum on-screen size of the hover marker so it stays visible when zoomed out
+const HOVER_MIN_PX = 2; // minimum on-screen size of the hover marker so it stays visible when zoomed out
 
 interface Props {
   purchases: Purchase[];
