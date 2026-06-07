@@ -290,9 +290,9 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
     }
 
     // Grid lines at high zoom
-    if (scale > 2.5) {
-      ctx.strokeStyle = 'rgba(0,0,0,0.06)';
-      ctx.lineWidth = 0.5 / scale;
+    if (scale > 2) {
+      ctx.strokeStyle = 'rgba(0,0,0,0.16)';
+      ctx.lineWidth = 0.75 / scale;
       for (let col = 0; col <= COLS; col++) {
         ctx.beginPath(); ctx.moveTo(col * CELL, 0); ctx.lineTo(col * CELL, GRID_H); ctx.stroke();
       }
@@ -305,10 +305,10 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
     const hover = hoverCellRef.current;
     if (hover && !isDraggingRef.current && !isResizingRef.current) {
       const hx = hover.cellX * CELL, hy = hover.cellY * CELL;
-      ctx.fillStyle = 'rgba(99,102,241,0.28)';
+      ctx.fillStyle = 'rgba(99,102,241,0.4)';
       ctx.fillRect(hx, hy, CELL, CELL);
-      ctx.strokeStyle = '#6366f1';
-      ctx.lineWidth = 1.5 / scale;
+      ctx.strokeStyle = '#4f46e5';
+      ctx.lineWidth = 2 / scale;
       ctx.strokeRect(hx, hy, CELL, CELL);
     }
 
