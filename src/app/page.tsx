@@ -3,10 +3,15 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import PixelCanvas from '@/components/PixelCanvas';
 import PurchasePanel from '@/components/PurchasePanel';
+import Sidebar from '@/components/Sidebar';
+import Leaderboard from '@/components/Leaderboard';
 import type { NormalizedSelection, Purchase } from '@/lib/types';
+
+type View = 'canvas' | 'leaderboard';
 
 export default function Home() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [view, setView] = useState<View>('canvas');
   const [selection, setSelection] = useState<NormalizedSelection | null>(null);
   const [clickedPurchase, setClickedPurchase] = useState<Purchase | null>(null);
 
@@ -74,6 +79,16 @@ export default function Home() {
     setPurchases(prev => [...prev, purchase]);
     fetchPurchases();
   }, [fetchPurchases]);
+
+  const handleViewChange = useCallback((v: View) => {
+    setView(v);
+    if (v !== 'canvas') {
+      setSelection(null);
+      setClickedPurchase(null);
+      setSelectMode(false);
+      setPanelCollapsed(false);
+    }
+  }, []);
 
   const panelOpen = !!(selection || clickedPurchase);
   const panelVisible = panelOpen && !panelCollapsed;
@@ -165,7 +180,27 @@ export default function Home() {
 
   return (
     <main className="flex h-screen supports-[height:100dvh]:h-[100dvh] overflow-hidden bg-slate-100 relative">
+      <Sidebar view={view} onChange={handleViewChange} />
+
       <div className="flex-1 relative overflow-hidden">
+        {/* Mobile view switcher */}
+        {isMobile && (
+          <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 flex bg-white/90 backdrop-blur-sm border border-zinc-200 rounded-full p-0.5 shadow-sm text-xs">
+            <button
+              onClick={() => handleViewChange('canvas')}
+              className={`px-4 py-1.5 rounded-full font-medium transition-colors ${view === 'canvas' ? 'bg-indigo-600 text-white' : 'text-zinc-600'}`}
+            >Холст</button>
+            <button
+              onClick={() => handleViewChange('leaderboard')}
+              className={`px-4 py-1.5 rounded-full font-medium transition-colors ${view === 'leaderboard' ? 'bg-indigo-600 text-white' : 'text-zinc-600'}`}
+            >Рейтинг</button>
+          </div>
+        )}
+
+        {view === 'leaderboard' ? (
+          <Leaderboard purchases={purchases} />
+        ) : (
+        <>
         <PixelCanvas
           purchases={purchases}
           selection={selection}
@@ -207,19 +242,12 @@ export default function Home() {
           </div>
         )}
 
-        {/* Footer with legal links */}
-        {!panelVisible && (
-          <div className="absolute bottom-2 left-3 hidden md:flex gap-3 text-[11px] text-zinc-400">
-            <a href="/contacts" className="hover:text-zinc-600 transition-colors">Реквизиты</a>
-            <a href="/terms" className="hover:text-zinc-600 transition-colors">Оферта</a>
-            <a href="/privacy" className="hover:text-zinc-600 transition-colors">Конфиденциальность</a>
-            <a href="/refund" className="hover:text-zinc-600 transition-colors">Возврат</a>
-          </div>
+        </>
         )}
       </div>
 
       {/* Backdrop — tap outside panel to collapse */}
-      {panelVisible && isMobile && (
+      {view === 'canvas' && panelVisible && isMobile && (
         <div
           className="absolute inset-0 z-10"
           onClick={handleCollapsePanel}
@@ -231,10 +259,10 @@ export default function Home() {
         ref={panelElRef}
         className={`absolute z-20 transition-transform duration-300 ease-in-out ${
           isMobile
-            ? `bottom-0 left-0 right-0 ${panelVisible ? 'translate-y-0' : 'translate-y-full'}`
-            : `top-0 right-0 h-full ${panelVisible ? 'translate-x-0' : 'translate-x-full'}`
+            ? `bottom-0 left-0 right-0 ${view === 'canvas' && panelVisible ? 'translate-y-0' : 'translate-y-full'}`
+            : `top-0 right-0 h-full ${view === 'canvas' && panelVisible ? 'translate-x-0' : 'translate-x-full'}`
         }`}
-        style={{ pointerEvents: panelVisible ? 'auto' : 'none' }}
+        style={{ pointerEvents: view === 'canvas' && panelVisible ? 'auto' : 'none' }}
       >
         {/* Visual drag handle */}
         <div className="md:hidden flex justify-center items-center h-8 bg-white rounded-t-2xl">
