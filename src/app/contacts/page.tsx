@@ -1,4 +1,4 @@
-export const metadata = { title: 'Реквизиты и контакты — Million Dollar Grid' };
+export const metadata = { title: 'Реквизиты и контакты — Gifmage Store' };
 
 export default function ContactsPage() {
   return (
@@ -21,12 +21,12 @@ export default function ContactsPage() {
           </div>
           <div className="flex justify-between">
             <span className="text-zinc-500">Сайт</span>
-            <span className="text-zinc-800 font-medium">themilliondollargrid</span>
+            <span className="text-zinc-800 font-medium">gifmagestore</span>
           </div>
         </div>
 
         <p className="text-zinc-600">
-          Million Dollar Grid — цифровой сервис размещения изображений и цветов на сетке 1000×1000.
+          Gifmage Store — цифровой сервис размещения изображений и цветов на сетке 1000×1000.
           Стоимость услуги — 10 ₽ за клетку. Подробные условия описаны в{' '}
           <a href="/terms" className="text-indigo-600 hover:underline">публичной оферте</a>.
         </p>

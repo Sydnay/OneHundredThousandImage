@@ -143,7 +143,7 @@ export default function PurchasePanel({
       {/* Header */}
       <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between shrink-0">
         <div>
-          <h1 className="text-sm font-semibold tracking-wide text-zinc-900">Million Dollar Grid</h1>
+          <h1 className="text-sm font-semibold tracking-wide text-zinc-900">Gifmage Store</h1>
           <p className="text-xs text-zinc-400 mt-0.5">1000 × 1000 · {PRICE_PER_CELL} ₽ за клетку</p>
         </div>
         <button

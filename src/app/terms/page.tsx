@@ -1,4 +1,4 @@
-export const metadata = { title: 'Публичная оферта — Million Dollar Grid' };
+export const metadata = { title: 'Публичная оферта — Gifmage Store' };
 
 export default function TermsPage() {
   return (
@@ -11,7 +11,7 @@ export default function TermsPage() {
           <h2 className="font-semibold text-base mb-2">1. Общие положения</h2>
           <p>Настоящий документ является публичной офертой (далее — «Оферта») самозанятого
           <strong> (плательщик НПД), ИНН 631819270208</strong> (далее — «Исполнитель») и содержит все существенные условия
-          оказания услуги по размещению изображения или цвета в выбранной области на сайте Million Dollar Grid.
+          оказания услуги по размещению изображения или цвета в выбранной области на сайте Gifmage Store.
           Оплата заказа означает полное и безоговорочное принятие условий настоящей Оферты (акцепт).</p>
         </div>
 

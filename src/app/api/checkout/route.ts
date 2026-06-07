@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     amount: { value: amount, currency: CURRENCY },
     capture: true,
     confirmation: { type: 'redirect', return_url: baseUrl },
-    description: `Область ${width}×${height} (${cells} клеток) на Million Dollar Grid`,
+    description: `Область ${width}×${height} (${cells} клеток) на Gifmage Store`,
     metadata: {
       x: String(x), y: String(y),
       width: String(width), height: String(height),

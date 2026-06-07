@@ -1,4 +1,4 @@
-export const metadata = { title: 'Условия возврата — Million Dollar Grid' };
+export const metadata = { title: 'Условия возврата — Gifmage Store' };
 
 export default function RefundPage() {
   return (

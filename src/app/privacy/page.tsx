@@ -1,4 +1,4 @@
-export const metadata = { title: 'Политика конфиденциальности — Million Dollar Grid' };
+export const metadata = { title: 'Политика конфиденциальности — Gifmage Store' };
 
 export default function PrivacyPage() {
   return (

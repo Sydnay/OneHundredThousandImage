@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Million Dollar Grid — твоё место в сетке',
+  title: 'Gifmage Store — твоё место в сетке',
   description: 'Купите клетки на сетке 1000×1000. Цена — 10 ₽ за клетку. Ваше изображение остаётся навсегда.',
 };
 
