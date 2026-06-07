@@ -11,6 +11,8 @@ const GRID_W = COLS * CELL;
 const GRID_H = ROWS * CELL;
 const EDGE_THRESH = 8; // px from edge to trigger resize cursor
 const TAP_THRESHOLD = 8; // px of finger movement before a touch counts as a drag (not a tap)
+const BLOCK = 50; // cells per major grid division (coarse 50×50 blocks)
+const HOVER_MIN_PX = 16; // minimum on-screen size of the hover marker so it stays visible when zoomed out
 
 interface Props {
   purchases: Purchase[];
@@ -289,27 +291,42 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
       img.style.height = `${p.height * CELL * scale}px`;
     }
 
-    // Grid lines at high zoom
-    if (scale > 2) {
-      ctx.strokeStyle = 'rgba(0,0,0,0.16)';
-      ctx.lineWidth = 0.75 / scale;
+    // Fine per-cell grid lines once zoomed in enough (skip the ones that coincide with major lines)
+    if (scale > 1.3) {
+      ctx.strokeStyle = 'rgba(0,0,0,0.13)';
+      ctx.lineWidth = 0.6 / scale;
       for (let col = 0; col <= COLS; col++) {
+        if (col % BLOCK === 0) continue;
         ctx.beginPath(); ctx.moveTo(col * CELL, 0); ctx.lineTo(col * CELL, GRID_H); ctx.stroke();
       }
       for (let row = 0; row <= ROWS; row++) {
+        if (row % BLOCK === 0) continue;
         ctx.beginPath(); ctx.moveTo(0, row * CELL); ctx.lineTo(GRID_W, row * CELL); ctx.stroke();
       }
     }
 
-    // Hover cell
+    // Major grid (50×50 blocks) — stays visible even when fully zoomed out
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+    ctx.lineWidth = 1 / scale;
+    for (let col = 0; col <= COLS; col += BLOCK) {
+      ctx.beginPath(); ctx.moveTo(col * CELL, 0); ctx.lineTo(col * CELL, GRID_H); ctx.stroke();
+    }
+    for (let row = 0; row <= ROWS; row += BLOCK) {
+      ctx.beginPath(); ctx.moveTo(0, row * CELL); ctx.lineTo(GRID_W, row * CELL); ctx.stroke();
+    }
+
+    // Hover cell — grows to a minimum on-screen size so it stays roughly visible when zoomed out
     const hover = hoverCellRef.current;
     if (hover && !isDraggingRef.current && !isResizingRef.current) {
-      const hx = hover.cellX * CELL, hy = hover.cellY * CELL;
+      const size = Math.max(CELL, HOVER_MIN_PX / scale);
+      const cxp = hover.cellX * CELL + CELL / 2;
+      const cyp = hover.cellY * CELL + CELL / 2;
+      const hx = cxp - size / 2, hy = cyp - size / 2;
       ctx.fillStyle = 'rgba(99,102,241,0.4)';
-      ctx.fillRect(hx, hy, CELL, CELL);
+      ctx.fillRect(hx, hy, size, size);
       ctx.strokeStyle = '#4f46e5';
-      ctx.lineWidth = 2 / scale;
-      ctx.strokeRect(hx, hy, CELL, CELL);
+      ctx.lineWidth = 1.5 / scale;
+      ctx.strokeRect(hx, hy, size, size);
     }
 
     // Active selection + fill preview
