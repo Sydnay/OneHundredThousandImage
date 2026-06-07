@@ -261,6 +261,31 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
     ctx.shadowBlur  = 0;
     ctx.shadowOffsetY = 0;
 
+    // Grid lines — drawn before purchases so painted cells sit on top of them
+    // Fine per-cell grid once zoomed in enough (skip cols/rows that coincide with major lines)
+    if (scale > 1.3) {
+      ctx.strokeStyle = 'rgba(0,0,0,0.13)';
+      ctx.lineWidth = 0.6 / scale;
+      for (let col = 0; col <= COLS; col++) {
+        if (col % BLOCK === 0) continue;
+        ctx.beginPath(); ctx.moveTo(col * CELL, 0); ctx.lineTo(col * CELL, GRID_H); ctx.stroke();
+      }
+      for (let row = 0; row <= ROWS; row++) {
+        if (row % BLOCK === 0) continue;
+        ctx.beginPath(); ctx.moveTo(0, row * CELL); ctx.lineTo(GRID_W, row * CELL); ctx.stroke();
+      }
+    }
+
+    // Major grid (50×50 blocks) — stays visible even when fully zoomed out
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+    ctx.lineWidth = 1 / scale;
+    for (let col = 0; col <= COLS; col += BLOCK) {
+      ctx.beginPath(); ctx.moveTo(col * CELL, 0); ctx.lineTo(col * CELL, GRID_H); ctx.stroke();
+    }
+    for (let row = 0; row <= ROWS; row += BLOCK) {
+      ctx.beginPath(); ctx.moveTo(0, row * CELL); ctx.lineTo(GRID_W, row * CELL); ctx.stroke();
+    }
+
     // Purchases
     for (const p of purchasesRef.current) {
       const px = p.x * CELL, py = p.y * CELL;
@@ -289,30 +314,6 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
       img.style.top    = `${p.y * CELL * scale + oy}px`;
       img.style.width  = `${p.width  * CELL * scale}px`;
       img.style.height = `${p.height * CELL * scale}px`;
-    }
-
-    // Fine per-cell grid lines once zoomed in enough (skip the ones that coincide with major lines)
-    if (scale > 1.3) {
-      ctx.strokeStyle = 'rgba(0,0,0,0.13)';
-      ctx.lineWidth = 0.6 / scale;
-      for (let col = 0; col <= COLS; col++) {
-        if (col % BLOCK === 0) continue;
-        ctx.beginPath(); ctx.moveTo(col * CELL, 0); ctx.lineTo(col * CELL, GRID_H); ctx.stroke();
-      }
-      for (let row = 0; row <= ROWS; row++) {
-        if (row % BLOCK === 0) continue;
-        ctx.beginPath(); ctx.moveTo(0, row * CELL); ctx.lineTo(GRID_W, row * CELL); ctx.stroke();
-      }
-    }
-
-    // Major grid (50×50 blocks) — stays visible even when fully zoomed out
-    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-    ctx.lineWidth = 1 / scale;
-    for (let col = 0; col <= COLS; col += BLOCK) {
-      ctx.beginPath(); ctx.moveTo(col * CELL, 0); ctx.lineTo(col * CELL, GRID_H); ctx.stroke();
-    }
-    for (let row = 0; row <= ROWS; row += BLOCK) {
-      ctx.beginPath(); ctx.moveTo(0, row * CELL); ctx.lineTo(GRID_W, row * CELL); ctx.stroke();
     }
 
     // Hover cell — grows to a minimum on-screen size so it stays roughly visible when zoomed out
