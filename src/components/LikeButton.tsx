@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { getVisitorId } from '@/lib/fingerprint';
 
 const LS_KEY = 'gfp_liked';
@@ -22,6 +22,7 @@ export default function LikeButton({ purchaseId, initialCount }: { purchaseId: n
   const [liked, setLiked] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const inFlight = useRef(false); // synchronous guard — state updates lag and let double-clicks through
 
   useEffect(() => {
     setCount(initialCount);
@@ -30,7 +31,8 @@ export default function LikeButton({ purchaseId, initialCount }: { purchaseId: n
   }, [purchaseId, initialCount]);
 
   const onClick = async () => {
-    if (busy) return;
+    if (inFlight.current) return;
+    inFlight.current = true;
     setBusy(true);
     setError(null);
     const prevLiked = liked, prevCount = count;
@@ -57,6 +59,7 @@ export default function LikeButton({ purchaseId, initialCount }: { purchaseId: n
       setLiked(prevLiked); setCount(prevCount);
       setError('Ошибка сети');
     } finally {
+      inFlight.current = false;
       setBusy(false);
     }
   };

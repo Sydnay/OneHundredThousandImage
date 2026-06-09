@@ -21,6 +21,7 @@ interface Props {
   color: string;
   imageUrl: string;
   selectMode: boolean;
+  focusTarget?: { x: number; y: number; width: number; height: number; token: number } | null;
   onSelectionChange: (sel: NormalizedSelection | null) => void;
   onPurchaseClick: (purchase: Purchase) => void;
 }
@@ -47,7 +48,7 @@ function edgeToCursor({ n, s, e, w }: Edge): string {
   return 'crosshair';
 }
 
-export default function PixelCanvas({ purchases, selection, fillType, color, imageUrl, selectMode, onSelectionChange, onPurchaseClick }: Props) {
+export default function PixelCanvas({ purchases, selection, fillType, color, imageUrl, selectMode, focusTarget, onSelectionChange, onPurchaseClick }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const gifLayerRef = useRef<HTMLDivElement>(null);
@@ -433,6 +434,24 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
       y: minY > maxY ? (h - gh) / 2 : Math.min(maxY, Math.max(minY, oy)),
     };
   }, []);
+
+  // Focus an area (e.g. clicked from the leaderboard): zoom in by its size and centre it.
+  useEffect(() => {
+    if (!focusTarget) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const vw = canvas.clientWidth, vh = canvas.clientHeight;
+    if (!vw || !vh) return;
+    const { x, y, width, height } = focusTarget;
+    const rectW = width * CELL, rectH = height * CELL;
+    const minScale = Math.min(vw / GRID_W, vh / GRID_H) * 0.85;
+    // Make the area fill ~55% of the smaller viewport dimension; clamp to sane zoom range.
+    const targetScale = Math.max(minScale, Math.min(25, 0.55 * Math.min(vw / rectW, vh / rectH)));
+    scaleRef.current = targetScale;
+    const cx = (x + width / 2) * CELL, cy = (y + height / 2) * CELL;
+    offsetRef.current = clampOffset(vw / 2 - cx * targetScale, vh / 2 - cy * targetScale);
+    hoverCellRef.current = null;
+  }, [focusTarget, clampOffset]);
 
   const handleWheel = useCallback((e: WheelEvent) => {
     e.preventDefault();

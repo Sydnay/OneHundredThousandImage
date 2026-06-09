@@ -5,7 +5,7 @@ import type { Purchase } from '@/lib/types';
 
 const TOTAL_CELLS = 1000 * 1000;
 
-interface Row { name: string | null; cells: number; areas: number; }
+interface Row { name: string | null; cells: number; areas: number; rep: Purchase; }
 
 function plural(n: number, one: string, few: string, many: string): string {
   const a = n % 10, b = n % 100;
@@ -25,17 +25,18 @@ function RankBadge({ i }: { i: number }) {
   );
 }
 
-export default function Leaderboard({ purchases }: { purchases: Purchase[] }) {
+export default function Leaderboard({ purchases, onSelectCell }: { purchases: Purchase[]; onSelectCell: (p: Purchase) => void }) {
   const [tab, setTab] = useState<'cells' | 'popular'>('cells');
 
-  // By cells (money): group by label; anonymous merged.
+  // By cells (money): group by label; anonymous merged. rep = largest area in the group.
   const map = new Map<string, Row>();
   for (const p of purchases) {
     const name = p.label && p.label.trim() ? p.label.trim() : null;
     const key = name ? name.toLowerCase() : '__anon__';
-    const row = map.get(key) ?? { name, cells: 0, areas: 0 };
+    const row = map.get(key) ?? { name, cells: 0, areas: 0, rep: p };
     row.cells += p.width * p.height;
     row.areas += 1;
+    if (p.width * p.height > row.rep.width * row.rep.height) row.rep = p;
     map.set(key, row);
   }
   const cellRows = Array.from(map.values()).sort((a, b) => b.cells - a.cells);
@@ -69,7 +70,8 @@ export default function Leaderboard({ purchases }: { purchases: Purchase[] }) {
           ) : (
             <ol className="space-y-2">
               {cellRows.map((r, i) => (
-                <li key={r.name ? r.name.toLowerCase() : '__anon__'} className="flex items-center gap-3 bg-white border border-zinc-200 rounded-xl px-4 py-3">
+                <li key={r.name ? r.name.toLowerCase() : '__anon__'} onClick={() => onSelectCell(r.rep)}
+                  className="flex items-center gap-3 bg-white border border-zinc-200 rounded-xl px-4 py-3 cursor-pointer hover:border-indigo-300 hover:bg-indigo-50/30 transition-colors">
                   <RankBadge i={i} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline justify-between gap-2">
@@ -100,7 +102,8 @@ export default function Leaderboard({ purchases }: { purchases: Purchase[] }) {
                 const likes = p.likes ?? 0;
                 const name = p.label && p.label.trim() ? p.label.trim() : null;
                 return (
-                  <li key={p.id} className="flex items-center gap-3 bg-white border border-zinc-200 rounded-xl px-4 py-3">
+                  <li key={p.id} onClick={() => onSelectCell(p)}
+                    className="flex items-center gap-3 bg-white border border-zinc-200 rounded-xl px-4 py-3 cursor-pointer hover:border-rose-300 hover:bg-rose-50/30 transition-colors">
                     <RankBadge i={i} />
                     <div className="w-8 h-8 shrink-0 rounded-md border border-zinc-200 overflow-hidden bg-zinc-50">
                       {p.fill_type === 'image' && p.image_url ? (

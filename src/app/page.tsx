@@ -12,6 +12,7 @@ type View = 'canvas' | 'leaderboard';
 export default function Home() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [view, setView] = useState<View>('canvas');
+  const [focusTarget, setFocusTarget] = useState<{ x: number; y: number; width: number; height: number; token: number } | null>(null);
   const [selection, setSelection] = useState<NormalizedSelection | null>(null);
   const [clickedPurchase, setClickedPurchase] = useState<Purchase | null>(null);
 
@@ -88,6 +89,17 @@ export default function Home() {
       setSelectMode(false);
       setPanelCollapsed(false);
     }
+  }, []);
+
+  const focusTokenRef = useRef(0);
+  const handleSelectCell = useCallback((p: Purchase) => {
+    focusTokenRef.current += 1;
+    setFocusTarget({ x: p.x, y: p.y, width: p.width, height: p.height, token: focusTokenRef.current });
+    setSelection(null);
+    setClickedPurchase(null);
+    setSelectMode(false);
+    setPanelCollapsed(false);
+    setView('canvas');
   }, []);
 
   const panelOpen = !!(selection || clickedPurchase);
@@ -198,7 +210,7 @@ export default function Home() {
         )}
 
         {view === 'leaderboard' ? (
-          <Leaderboard purchases={purchases} />
+          <Leaderboard purchases={purchases} onSelectCell={handleSelectCell} />
         ) : (
         <>
         <PixelCanvas
@@ -208,6 +220,7 @@ export default function Home() {
           color={color}
           imageUrl={imageUrl}
           selectMode={selectMode}
+          focusTarget={focusTarget}
           onSelectionChange={sel => { handleSelectionChange(sel); if (sel) setSelectMode(false); }}
           onPurchaseClick={handlePurchaseClick}
         />
