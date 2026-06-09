@@ -45,6 +45,9 @@ export async function POST(request: Request) {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL ?? new URL(request.url).origin;
   const auth = Buffer.from(`${shopId}:${secretKey}`).toString('base64');
 
+  // NOTE: YooKassa stopped issuing self-employed (НПД) receipts on 2025-12-29, so we do
+  // NOT send a `receipt` block. The merchant issues the чек via «Мой налог». The buyer
+  // email is kept in metadata so the merchant can send the чек from the YooKassa dashboard.
   const payment = {
     amount: { value: amount, currency: CURRENCY },
     capture: true,
@@ -58,44 +61,49 @@ export async function POST(request: Request) {
       image_url: image_url ?? '',
       label: body.label ?? '',
       link_url: body.link_url ?? '',
-    },
-    receipt: {
-      customer: { email },
-      items: [{
-        description: `Размещение области ${width}×${height} (${cells} клеток)`,
-        quantity: '1.00',
-        amount: { value: amount, currency: CURRENCY },
-        vat_code: 1,            // без НДС (самозанятый)
-        payment_subject: 'service',
-        payment_mode: 'full_payment',
-      }],
+      email,
     },
   };
 
-  try {
-    const res = await fetch(YOOKASSA_API, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Idempotence-Key': randomUUID(),
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payment),
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      console.error('[yookassa checkout]', data);
-      return Response.json({ error: 'Не удалось создать платёж' }, { status: 500 });
-    }
+  // One idempotence key per checkout attempt, reused across retries — a transient 500/429
+  // does NOT mean the payment failed, so reusing the key avoids creating a duplicate.
+  const idempotenceKey = randomUUID();
+  const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
-    const checkoutUrl = data.confirmation?.confirmation_url;
-    if (!checkoutUrl) {
-      console.error('[yookassa] no confirmation_url', data);
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const res = await fetch(YOOKASSA_API, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${auth}`,
+          'Idempotence-Key': idempotenceKey,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payment),
+      });
+
+      // 500/429 are transient per YooKassa — back off and retry with the SAME key
+      if ((res.status === 500 || res.status === 429) && attempt < 3) {
+        await sleep(attempt * 500);
+        continue;
+      }
+
+      const data = await res.json();
+      if (!res.ok) {
+        console.error('[yookassa checkout]', res.status, data);
+        return Response.json({ error: 'Не удалось создать платёж' }, { status: 500 });
+      }
+      const checkoutUrl = data.confirmation?.confirmation_url;
+      if (!checkoutUrl) {
+        console.error('[yookassa] no confirmation_url', data);
+        return Response.json({ error: 'Не удалось создать платёж' }, { status: 500 });
+      }
+      return Response.json({ checkoutUrl });
+    } catch (err) {
+      console.error('[yookassa checkout] attempt', attempt, err);
+      if (attempt < 3) { await sleep(attempt * 500); continue; }
       return Response.json({ error: 'Не удалось создать платёж' }, { status: 500 });
     }
-    return Response.json({ checkoutUrl });
-  } catch (err) {
-    console.error('[yookassa checkout]', err);
-    return Response.json({ error: 'Не удалось создать платёж' }, { status: 500 });
   }
+  return Response.json({ error: 'Не удалось создать платёж' }, { status: 500 });
 }

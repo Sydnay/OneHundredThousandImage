@@ -17,15 +17,15 @@ export default function PrivacyPage() {
         <div>
           <h2 className="font-semibold text-base mb-2">2. Какие данные мы собираем</h2>
           <p>При оформлении заказа мы получаем ваш адрес электронной почты — он необходим для
-          направления кассового чека. Данные банковской карты обрабатываются платёжным сервисом
-          ЮKassa и нам не передаются.</p>
+          направления чека самозанятого (НПД) через сервис «Мой налог». Данные банковской карты
+          обрабатываются платёжным сервисом ЮKassa и нам не передаются.</p>
         </div>
 
         <div>
           <h2 className="font-semibold text-base mb-2">3. Цели обработки</h2>
           <ul className="list-disc list-inside space-y-1 text-zinc-600">
             <li>оказание оплаченной услуги;</li>
-            <li>направление кассового чека (требование 422-ФЗ);</li>
+            <li>формирование и направление чека самозанятого через «Мой налог» (требование 422-ФЗ);</li>
             <li>обратная связь по запросу пользователя.</li>
           </ul>
         </div>
@@ -39,7 +39,8 @@ export default function PrivacyPage() {
         <div>
           <h2 className="font-semibold text-base mb-2">5. Передача третьим лицам</h2>
           <ul className="list-disc list-inside space-y-1 text-zinc-600">
-            <li><strong>ЮKassa (АО «ЮMoney»)</strong> — обработка платежей и формирование чеков;</li>
+            <li><strong>ЮKassa (АО «ЮMoney»)</strong> — обработка платежей;</li>
+            <li><strong>ФНС «Мой налог»</strong> — формирование чека самозанятого (НПД);</li>
             <li><strong>Cloudinary</strong> — хранение загруженных изображений;</li>
             <li><strong>Neon</strong> — хранение данных о размещённых областях.</li>
           </ul>
