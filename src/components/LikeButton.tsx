@@ -20,9 +20,8 @@ function persistLiked(id: number, liked: boolean) {
 export default function LikeButton({ purchaseId, initialCount }: { purchaseId: number; initialCount: number }) {
   const [count, setCount] = useState(initialCount);
   const [liked, setLiked] = useState(false);
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const inFlight = useRef(false); // synchronous guard — state updates lag and let double-clicks through
+  const inFlight = useRef(false); // synchronous guard — state lags, so it would let double-clicks through
 
   useEffect(() => {
     setCount(initialCount);
@@ -30,15 +29,19 @@ export default function LikeButton({ purchaseId, initialCount }: { purchaseId: n
     setError(null);
   }, [purchaseId, initialCount]);
 
+  // Pre-warm the fingerprint so there's no compute delay on the first click.
+  useEffect(() => { getVisitorId(); }, []);
+
   const onClick = async () => {
     if (inFlight.current) return;
     inFlight.current = true;
-    setBusy(true);
     setError(null);
     const prevLiked = liked, prevCount = count;
-    // optimistic
-    setLiked(!prevLiked);
-    setCount(prevCount + (prevLiked ? -1 : 1));
+    const nextLiked = !prevLiked;
+    // Optimistic: update + persist instantly; reconcile/rollback after the server replies.
+    setLiked(nextLiked);
+    setCount(prevCount + (nextLiked ? 1 : -1));
+    persistLiked(purchaseId, nextLiked);
     try {
       const vid = await getVisitorId();
       const res = await fetch('/api/like', {
@@ -48,7 +51,7 @@ export default function LikeButton({ purchaseId, initialCount }: { purchaseId: n
       });
       const data = await res.json();
       if (!res.ok) {
-        setLiked(prevLiked); setCount(prevCount);
+        setLiked(prevLiked); setCount(prevCount); persistLiked(purchaseId, prevLiked);
         setError(data.error ?? 'Не удалось');
         return;
       }
@@ -56,11 +59,10 @@ export default function LikeButton({ purchaseId, initialCount }: { purchaseId: n
       setCount(data.count);
       persistLiked(purchaseId, data.liked);
     } catch {
-      setLiked(prevLiked); setCount(prevCount);
+      setLiked(prevLiked); setCount(prevCount); persistLiked(purchaseId, prevLiked);
       setError('Ошибка сети');
     } finally {
       inFlight.current = false;
-      setBusy(false);
     }
   };
 
@@ -68,8 +70,7 @@ export default function LikeButton({ purchaseId, initialCount }: { purchaseId: n
     <div className="flex items-center gap-2">
       <button
         onClick={onClick}
-        disabled={busy}
-        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors disabled:opacity-60 ${
+        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium border transition-colors active:scale-95 ${
           liked
             ? 'bg-rose-50 border-rose-200 text-rose-600'
             : 'bg-white border-zinc-200 text-zinc-600 hover:border-rose-200 hover:text-rose-500'
