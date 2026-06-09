@@ -113,6 +113,7 @@ export default function Home() {
     let startY = 0;
     let startScrollTop = 0;
     let startTarget: EventTarget | null = null;
+    let startedOnHandle = false;
     let dragging = false; // true = panel is following finger downward
 
     const getAside = () => panelElRef.current?.querySelector('aside') ?? null;
@@ -121,6 +122,8 @@ export default function Home() {
       startY = e.touches[0].clientY;
       startTarget = e.target;
       dragging = false;
+      const el = e.target as Element | null;
+      startedOnHandle = !!(el && typeof el.closest === 'function' && el.closest('[data-drag-handle]'));
       const aside = getAside();
       // Record scrollTop at gesture start — not at end — to avoid false dismiss
       startScrollTop = aside ? aside.scrollTop : 0;
@@ -135,8 +138,9 @@ export default function Home() {
 
       if (!dragging) {
         const inPanel = panelEl.contains(startTarget as Node);
-        // Start dismiss drag only when: inside panel, scrollTop was 0 at start, swiping down
-        if (inPanel && startScrollTop === 0 && dy > 8) {
+        // Start dismiss drag when swiping down from inside the panel — always allowed if the
+        // gesture began on the drag handle; otherwise only when the content is scrolled to top.
+        if (inPanel && (startedOnHandle || startScrollTop === 0) && dy > 8) {
           dragging = true;
           panelEl.style.transition = 'none';
         } else {
@@ -247,11 +251,6 @@ export default function Home() {
                 {selectMode ? 'Коснитесь и тяните' : '✏ Выделить область'}
               </button>
             )}
-            {!panelOpen && (
-              <div className="pointer-events-none bg-white/80 backdrop-blur-sm border border-zinc-200 rounded-full px-4 py-2 text-xs text-zinc-500 shadow-sm whitespace-nowrap">
-                {isMobile ? 'Щипок — масштаб · касание — просмотр' : 'Выделите мышью · колёсико — масштаб · клик — просмотр'}
-              </div>
-            )}
           </div>
         )}
 
@@ -278,7 +277,7 @@ export default function Home() {
         style={{ pointerEvents: view === 'canvas' && panelVisible ? 'auto' : 'none' }}
       >
         {/* Visual drag handle */}
-        <div className="md:hidden flex justify-center items-center h-8 bg-white rounded-t-2xl">
+        <div data-drag-handle className="md:hidden flex justify-center items-center h-8 bg-white rounded-t-2xl">
           <div className="w-10 h-1 rounded-full bg-zinc-300" />
         </div>
         <PurchasePanel

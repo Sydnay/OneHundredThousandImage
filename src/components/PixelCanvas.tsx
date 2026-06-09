@@ -92,7 +92,7 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
 
   // Touch state
   const touchRef = useRef<{
-    type: 'pan' | 'pinch' | 'select';
+    type: 'pan' | 'pinch' | 'select' | 'resize';
     startX: number; startY: number; moved: boolean;
     pinchStartDist?: number; pinchStartScale?: number;
   } | null>(null);
@@ -204,7 +204,7 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
   }, []);
 
   /** Returns which edges of the current selection the mouse is near, or null */
-  const getResizeEdge = useCallback((screenX: number, screenY: number): Edge | null => {
+  const getResizeEdge = useCallback((screenX: number, screenY: number, thresh: number = EDGE_THRESH): Edge | null => {
     const sel = selectionRef.current;
     const canvas = canvasRef.current;
     if (!sel || !canvas) return null;
@@ -219,13 +219,13 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
     const bottom = (sel.y + sel.height) * CELL * scale + oy + rect.top;
 
     // Must be within the bounding box (with threshold) to trigger
-    if (screenX < left  - EDGE_THRESH || screenX > right  + EDGE_THRESH) return null;
-    if (screenY < top   - EDGE_THRESH || screenY > bottom + EDGE_THRESH) return null;
+    if (screenX < left  - thresh || screenX > right  + thresh) return null;
+    if (screenY < top   - thresh || screenY > bottom + thresh) return null;
 
-    const n = Math.abs(screenY - top)    < EDGE_THRESH;
-    const s = Math.abs(screenY - bottom) < EDGE_THRESH;
-    const w = Math.abs(screenX - left)   < EDGE_THRESH;
-    const e = Math.abs(screenX - right)  < EDGE_THRESH;
+    const n = Math.abs(screenY - top)    < thresh;
+    const s = Math.abs(screenY - bottom) < thresh;
+    const w = Math.abs(screenX - left)   < thresh;
+    const e = Math.abs(screenX - right)  < thresh;
 
     if (!n && !s && !e && !w) return null;
     return { n, s, e, w };
@@ -688,7 +688,17 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
       const touches = Array.from(e.touches);
       if (touches.length === 1) {
         const t = touches[0];
-        if (selectModeRef.current) {
+        // Resize an existing selection if the finger lands near an edge (bigger touch threshold)
+        const edge = selectionRef.current ? getResizeEdge(t.clientX, t.clientY, 22) : null;
+        if (edge && selectionRef.current) {
+          const sel = selectionRef.current;
+          isResizingRef.current = true;
+          resizeEdgeRef.current = edge;
+          resizeOrigRef.current = { x: sel.x, y: sel.y, w: sel.width, h: sel.height };
+          dragStartRef.current  = { cellX: sel.x,                 cellY: sel.y };
+          dragEndRef.current    = { cellX: sel.x + sel.width - 1, cellY: sel.y + sel.height - 1 };
+          touchRef.current = { type: 'resize', startX: t.clientX, startY: t.clientY, moved: false };
+        } else if (selectModeRef.current) {
           const cell = screenToCell(t.clientX, t.clientY);
           if (cell) { isDraggingRef.current = true; dragStartRef.current = cell; dragEndRef.current = cell; }
           touchRef.current = { type: 'select', startX: t.clientX, startY: t.clientY, moved: false };
@@ -730,6 +740,22 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
         const cell = screenToCell(t.clientX, t.clientY);
         if (cell) dragEndRef.current = cell;
         state.moved = true;
+      } else if (state.type === 'resize' && touches.length === 1) {
+        const t = touches[0];
+        const cell = screenToCell(t.clientX, t.clientY);
+        if (!cell) return;
+        const orig = resizeOrigRef.current!;
+        const edge = resizeEdgeRef.current!;
+        let startX = orig.x, startY = orig.y;
+        let endX   = orig.x + orig.w - 1;
+        let endY   = orig.y + orig.h - 1;
+        if (edge.e) endX   = Math.max(startX, Math.min(COLS - 1, cell.cellX));
+        if (edge.w) startX = Math.min(endX,   Math.max(0,        cell.cellX));
+        if (edge.s) endY   = Math.max(startY, Math.min(ROWS - 1, cell.cellY));
+        if (edge.n) startY = Math.min(endY,   Math.max(0,        cell.cellY));
+        dragStartRef.current = { cellX: startX, cellY: startY };
+        dragEndRef.current   = { cellX: endX,   cellY: endY   };
+        state.moved = true;
       } else if (state.type === 'pinch' && touches.length >= 2) {
         const t1 = touches[0], t2 = touches[1];
         const dist = Math.hypot(t2.clientX - t1.clientX, t2.clientY - t1.clientY);
@@ -763,8 +789,9 @@ export default function PixelCanvas({ purchases, selection, fillType, color, ima
             else onPurchaseClick(hit);
           }
         }
-      } else if (state?.type === 'select') {
+      } else if (state?.type === 'select' || state?.type === 'resize') {
         isDraggingRef.current = false;
+        isResizingRef.current = false;
         const ds = dragStartRef.current, de = dragEndRef.current;
         if (ds && de) {
           const { x, y, w, h } = normalizeRect(ds.cellX, ds.cellY, de.cellX, de.cellY);
