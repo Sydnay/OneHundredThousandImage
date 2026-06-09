@@ -5,6 +5,7 @@ import type { NormalizedSelection, Purchase } from '@/lib/types';
 import { PRICE_PER_CELL, formatRub } from '@/lib/pricing';
 import ColorPicker from './ColorPicker';
 import ImageUploader from './ImageUploader';
+import LikeButton from './LikeButton';
 
 interface Props {
   selection: NormalizedSelection | null;
@@ -197,6 +198,10 @@ export default function PurchasePanel({
                   ); }
                 })()
               )}
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <LikeButton purchaseId={clickedPurchase.id} initialCount={clickedPurchase.likes ?? 0} />
+              <span className="text-xs text-zinc-400">оценить клетку</span>
             </div>
             <button
               onClick={startEditing}

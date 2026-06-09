@@ -10,6 +10,7 @@ export interface Purchase {
   label: string | null;
   link_url: string | null;
   created_at: string;
+  likes?: number;
 }
 
 export interface Selection {
