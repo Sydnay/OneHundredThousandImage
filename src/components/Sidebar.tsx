@@ -43,11 +43,11 @@ export default function Sidebar({ view, onChange }: { view: View; onChange: (v: 
         {item('leaderboard', 'Рейтинг', <ChartIcon />)}
       </nav>
 
-      <div className="mt-auto flex flex-col gap-1.5 px-3 text-[11px] text-zinc-400">
-        <a href="/contacts" className="hover:text-zinc-600 transition-colors">Реквизиты</a>
-        <a href="/terms" className="hover:text-zinc-600 transition-colors">Оферта</a>
-        <a href="/privacy" className="hover:text-zinc-600 transition-colors">Конфиденциальность</a>
-        <a href="/refund" className="hover:text-zinc-600 transition-colors">Возврат</a>
+      <div className="mt-auto flex flex-col px-3 text-[11px] text-zinc-400">
+        <a href="/contacts" className="leading-7 hover:text-zinc-600 transition-colors">Реквизиты</a>
+        <a href="/terms" className="leading-7 hover:text-zinc-600 transition-colors">Оферта</a>
+        <a href="/privacy" className="leading-7 hover:text-zinc-600 transition-colors">Конфиденциальность</a>
+        <a href="/refund" className="leading-7 hover:text-zinc-600 transition-colors">Возврат</a>
       </div>
     </aside>
   );

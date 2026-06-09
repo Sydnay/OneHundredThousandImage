@@ -51,7 +51,7 @@ export default function Leaderboard({ purchases, onSelectCell }: { purchases: Pu
 
   return (
     <div className="h-full overflow-y-auto bg-slate-100">
-      <div className="max-w-2xl mx-auto px-5 pt-16 pb-10 md:py-12">
+      <div className="max-w-4xl mx-auto px-5 pt-16 pb-10 md:py-12">
         <header className="mb-4">
           <h1 className="text-xl font-bold text-zinc-900">Рейтинг</h1>
           <p className="text-sm text-zinc-500 mt-1">Лидеры сетки Gifmage Store</p>

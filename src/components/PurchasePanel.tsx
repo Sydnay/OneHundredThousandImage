@@ -145,7 +145,6 @@ export default function PurchasePanel({
       <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between shrink-0">
         <div>
           <h1 className="text-sm font-semibold tracking-wide text-zinc-900">Gifmage Store</h1>
-          <p className="text-xs text-zinc-400 mt-0.5">1000 × 1000 · {PRICE_PER_CELL} ₽ за клетку</p>
         </div>
         <button
           onClick={onClose}
@@ -228,7 +227,7 @@ export default function PurchasePanel({
               <button
                 onClick={() => setEditFillType('image')}
                 className={`flex-1 py-1.5 rounded-md transition-all font-medium ${editFillType === 'image' ? 'bg-white text-zinc-800 shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}`}
-              >Изображение</button>
+              >Изображение/GIF</button>
             </div>
 
             {editFillType === 'color' ? (
@@ -239,12 +238,12 @@ export default function PurchasePanel({
 
             <div className="space-y-2">
               <div>
-                <label className="block text-xs text-zinc-400 mb-1.5">Подпись <span className="text-zinc-300">(необязательно)</span></label>
+                <label className="block text-xs text-zinc-400 mb-1.5">Ваше имя</label>
                 <input type="text" value={editLabel} onChange={e => setEditLabel(e.target.value)}
-                  placeholder="Ваше имя или бренд" maxLength={60} className={inputCls} />
+                  placeholder="Иван Иванович" maxLength={60} className={inputCls} />
               </div>
               <div>
-                <label className="block text-xs text-zinc-400 mb-1.5">Ссылка или текст <span className="text-zinc-300">(необязательно)</span></label>
+                <label className="block text-xs text-zinc-400 mb-1.5">Ссылка или текст</label>
                 <input type="text" value={editLinkUrl} onChange={e => setEditLinkUrl(e.target.value)}
                   placeholder="https://ваш-сайт.ру или любой текст" maxLength={150} className={inputCls} />
               </div>
@@ -306,7 +305,7 @@ export default function PurchasePanel({
                 onClick={() => onFillTypeChange('image')}
                 className={`flex-1 py-1.5 rounded-md transition-all font-medium ${fillType === 'image' ? 'bg-white text-zinc-800 shadow-sm' : 'text-zinc-400 hover:text-zinc-600'}`}
               >
-                Изображение
+                Изображение/GIF
               </button>
             </div>
 
@@ -320,17 +319,17 @@ export default function PurchasePanel({
             {/* Metadata */}
             <div className="space-y-2">
               <div>
-                <label className="block text-xs text-zinc-400 mb-1.5">Подпись <span className="text-zinc-300">(необязательно)</span></label>
+                <label className="block text-xs text-zinc-400 mb-1.5">Ваше имя</label>
                 <input type="text" value={label} onChange={e => setLabel(e.target.value)}
-                  placeholder="Ваше имя или бренд" maxLength={60} className={inputCls} />
+                  placeholder="Иван Иванович" maxLength={60} className={inputCls} />
               </div>
               <div>
-                <label className="block text-xs text-zinc-400 mb-1.5">Ссылка или текст <span className="text-zinc-300">(необязательно)</span></label>
+                <label className="block text-xs text-zinc-400 mb-1.5">Ссылка или текст</label>
                 <input type="text" value={linkUrl} onChange={e => setLinkUrl(e.target.value)}
                   placeholder="https://ваш-сайт.ру или любой текст" maxLength={150} className={inputCls} />
               </div>
               <div>
-                <label className="block text-xs text-zinc-400 mb-1.5">Email <span className="text-zinc-300">(для чека)</span></label>
+                <label className="block text-xs text-zinc-400 mb-1.5">Email <span className="text-red-500">*</span></label>
                 <input type="email" inputMode="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)}
                   onFocus={e => { const el = e.currentTarget; setTimeout(() => el.scrollIntoView({ block: 'center', behavior: 'smooth' }), 300); }}
                   placeholder="you@example.com" maxLength={120} className={inputCls} />
