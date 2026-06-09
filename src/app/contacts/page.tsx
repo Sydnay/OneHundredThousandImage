@@ -17,7 +17,7 @@ export default function ContactsPage() {
           </div>
           <div className="flex justify-between">
             <span className="text-zinc-500">Email</span>
-            <a href="mailto:ytsmartmuesli@gmail.com" className="text-indigo-600 hover:underline font-medium">ytsmartmuesli@gmail.com</a>
+            <a href="mailto:waytodev0@gmail.com" className="text-indigo-600 hover:underline font-medium">waytodev0@gmail.com</a>
           </div>
           <div className="flex justify-between">
             <span className="text-zinc-500">Сайт</span>

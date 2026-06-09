@@ -27,7 +27,7 @@ export default function RefundPage() {
 
         <div>
           <h2 className="font-semibold text-base mb-2">Как запросить возврат</h2>
-          <p>Напишите на <a href="mailto:ytsmartmuesli@gmail.com" className="text-indigo-600 hover:underline">ytsmartmuesli@gmail.com</a> с
+          <p>Напишите на <a href="mailto:waytodev0@gmail.com" className="text-indigo-600 hover:underline">waytodev0@gmail.com</a> с
           деталями заказа в течение 7 дней с момента оплаты. Возврат производится через ЮKassa на ту же карту
           в течение 5–10 рабочих дней.</p>
         </div>

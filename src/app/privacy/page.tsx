@@ -58,7 +58,7 @@ export default function PrivacyPage() {
         <div>
           <h2 className="font-semibold text-base mb-2">7. Контакты</h2>
           <p>По вопросам обработки персональных данных:
-          <a href="mailto:ytsmartmuesli@gmail.com" className="text-indigo-600 hover:underline"> ytsmartmuesli@gmail.com</a></p>
+          <a href="mailto:waytodev0@gmail.com" className="text-indigo-600 hover:underline"> waytodev0@gmail.com</a></p>
         </div>
       </section>
 

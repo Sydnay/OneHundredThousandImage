@@ -53,7 +53,7 @@ export default function TermsPage() {
           <h2 className="font-semibold text-base mb-2">7. Реквизиты и контакты</h2>
           <p>Статус: <strong>самозанятый (плательщик налога на профессиональный доход)</strong><br />
           ИНН: <strong>631819270208</strong><br />
-          Email: <a href="mailto:ytsmartmuesli@gmail.com" className="text-indigo-600 hover:underline">ytsmartmuesli@gmail.com</a></p>
+          Email: <a href="mailto:waytodev0@gmail.com" className="text-indigo-600 hover:underline">waytodev0@gmail.com</a></p>
         </div>
       </section>
 
