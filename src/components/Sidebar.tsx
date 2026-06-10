@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import Logo from './Logo';
 
 type View = 'canvas' | 'leaderboard';
 
@@ -31,10 +32,7 @@ export default function Sidebar({ view, onChange }: { view: View; onChange: (v: 
   return (
     <aside className="hidden md:flex flex-col w-56 shrink-0 h-full bg-white border-r border-zinc-200 px-3 py-4">
       <div className="flex items-center gap-2.5 px-2 mb-6">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 grid grid-cols-2 grid-rows-2 gap-px p-1">
-          <span className="bg-white/90 rounded-[1px]" /><span className="bg-white/50 rounded-[1px]" />
-          <span className="bg-white/50 rounded-[1px]" /><span className="bg-white/90 rounded-[1px]" />
-        </div>
+        <Logo size={32} className="rounded-lg" />
         <span className="text-sm font-semibold text-zinc-900 leading-tight">Gifmage Store</span>
       </div>
 

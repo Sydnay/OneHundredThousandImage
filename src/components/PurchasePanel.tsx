@@ -6,6 +6,7 @@ import { PRICE_PER_CELL, formatRub } from '@/lib/pricing';
 import ColorPicker from './ColorPicker';
 import ImageUploader from './ImageUploader';
 import LikeButton from './LikeButton';
+import Logo from './Logo';
 
 interface Props {
   selection: NormalizedSelection | null;
@@ -180,7 +181,8 @@ export default function PurchasePanel({
     <aside className="w-full md:w-72 max-h-[75vh] supports-[height:100dvh]:max-h-[75dvh] md:max-h-none md:h-full flex flex-col bg-white border-t md:border-t-0 md:border-l border-zinc-200 md:rounded-none overflow-y-auto overscroll-y-contain shadow-xl md:shadow-none" style={{ touchAction: 'pan-y' }}>
       {/* Header */}
       <div className="px-5 py-4 border-b border-zinc-100 flex items-center justify-between shrink-0">
-        <div>
+        <div className="flex items-center gap-2">
+          <Logo size={22} className="rounded-md" />
           <h1 className="text-sm font-semibold tracking-wide text-zinc-900">Gifmage Store</h1>
         </div>
         <button
