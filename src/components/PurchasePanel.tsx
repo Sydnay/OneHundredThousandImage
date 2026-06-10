@@ -134,7 +134,14 @@ export default function PurchasePanel({
         if (!res.ok) { setError(data.error ?? 'Не удалось разместить'); return; }
         setSuccess(true);
         onNewPurchase(data.purchase);
-        setTimeout(() => { setSuccess(false); onClearSelection(); }, 1200);
+        // Reset the form so the next selection starts empty (no stale image/label/link).
+        setTimeout(() => {
+          setSuccess(false);
+          onImageUrlChange('');
+          setLabel('');
+          setLinkUrl('');
+          onClearSelection();
+        }, 1200);
       } catch {
         setError('Ошибка сети. Попробуйте ещё раз.');
       } finally {
