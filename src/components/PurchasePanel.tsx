@@ -35,6 +35,10 @@ export default function PurchasePanel({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  // Dev-only switch: place the cell instantly (bypass YooKassa). Never exists in prod build.
+  const isDev = process.env.NODE_ENV === 'development';
+  const [fakeMode, setFakeMode] = useState(isDev);
+
   // Edit mode for clicked purchases
   const [editing, setEditing] = useState(false);
   const [editFillType, setEditFillType] = useState<'color' | 'image'>('color');
@@ -103,6 +107,43 @@ export default function PurchasePanel({
       setError('Сначала загрузите изображение.');
       return;
     }
+
+    const payload = {
+      x: selection.x,
+      y: selection.y,
+      width: selection.width,
+      height: selection.height,
+      fill_type: fillType,
+      color: fillType === 'color' ? color : undefined,
+      image_url: fillType === 'image' ? imageUrl : undefined,
+      label: label || undefined,
+      link_url: linkUrl || undefined,
+    };
+
+    // DEV instant mode: write straight to the DB, no payment.
+    if (isDev && fakeMode) {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch('/api/purchase', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (!res.ok) { setError(data.error ?? 'Не удалось разместить'); return; }
+        setSuccess(true);
+        onNewPurchase(data.purchase);
+        setTimeout(() => { setSuccess(false); onClearSelection(); }, 1200);
+      } catch {
+        setError('Ошибка сети. Попробуйте ещё раз.');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
+    // Real payment flow (YooKassa) — email required for the чек.
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
       setError('Укажите корректный email — на него придёт чек.');
       return;
@@ -113,18 +154,7 @@ export default function PurchasePanel({
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          x: selection.x,
-          y: selection.y,
-          width: selection.width,
-          height: selection.height,
-          fill_type: fillType,
-          color: fillType === 'color' ? color : undefined,
-          image_url: fillType === 'image' ? imageUrl : undefined,
-          label: label || undefined,
-          link_url: linkUrl || undefined,
-          email,
-        }),
+        body: JSON.stringify({ ...payload, email }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error ?? 'Не удалось оформить'); return; }
@@ -336,12 +366,20 @@ export default function PurchasePanel({
               </div>
             </div>
 
+            {/* DEV-only switch — never rendered in the prod build */}
+            {isDev && (
+              <label className="flex items-center justify-between gap-2 text-xs bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 cursor-pointer">
+                <span className="text-amber-700">⚡ DEV: разместить сразу (без оплаты)</span>
+                <input type="checkbox" checked={fakeMode} onChange={e => setFakeMode(e.target.checked)} className="accent-amber-600" />
+              </label>
+            )}
+
             {error && (
               <p className="text-xs text-red-500 bg-red-50 border border-red-100 rounded-lg px-3 py-2">{error}</p>
             )}
             {success && (
               <p className="text-xs text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-lg px-3 py-2">
-                Область куплена! Она появилась на сетке.
+                Область размещена! Она появилась на сетке.
               </p>
             )}
 
@@ -351,7 +389,9 @@ export default function PurchasePanel({
                 disabled={loading || success}
                 className="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm font-medium text-white transition-colors shadow-sm"
               >
-                {loading ? 'Переход к оплате…' : `Оплатить ${formatRub(selection.totalPrice)}`}
+                {isDev && fakeMode
+                  ? (loading ? 'Размещаю…' : `Разместить ${formatRub(selection.totalPrice)}`)
+                  : (loading ? 'Переход к оплате…' : `Оплатить ${formatRub(selection.totalPrice)}`)}
               </button>
               <button
                 onClick={onClearSelection}
