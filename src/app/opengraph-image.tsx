@@ -1,9 +1,8 @@
 import { ImageResponse } from 'next/og';
 
-// Generated at request time on the server (Linux on Netlify). @vercel/og's asset
-// loader fails on a Windows path with a non-ASCII username, so it can't be
-// previewed locally, but it renders fine in production.
-export const dynamic = 'force-dynamic';
+// Edge runtime: Netlify's node runtime doesn't bundle @vercel/og's WASM (→ 500),
+// edge does. Also why it can't be previewed on the local Windows/Cyrillic path.
+export const runtime = 'edge';
 
 export const alt = 'Gifmage Store — купи пиксель, размести картинку или GIF';
 export const size = { width: 1200, height: 630 };
