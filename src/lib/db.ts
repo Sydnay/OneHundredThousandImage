@@ -125,6 +125,18 @@ export async function checkCollision(x: number, y: number, w: number, h: number)
   return rows.length > 0;
 }
 
+// Auto-generated "bot"-style name for buyers who leave the name blank — so they
+// each get a distinct identity in the leaderboard instead of merging as "Аноним".
+const BOT_ADJ = ['Шустрый', 'Дерзкий', 'Хитрый', 'Грозный', 'Весёлый', 'Тихий', 'Быстрый', 'Смелый', 'Ленивый', 'Мудрый', 'Сонный', 'Бравый', 'Лихой', 'Наглый', 'Пушистый', 'Крутой', 'Тайный', 'Дикий', 'Гордый', 'Бешеный'];
+const BOT_NOUN = ['Барсук', 'Енот', 'Лис', 'Ёж', 'Волк', 'Бобр', 'Хорёк', 'Сокол', 'Тигр', 'Краб', 'Филин', 'Кабан', 'Лось', 'Суслик', 'Морж', 'Пингвин', 'Хомяк', 'Орёл', 'Жираф', 'Слон'];
+
+function randomBotName(): string {
+  const a = BOT_ADJ[Math.floor(Math.random() * BOT_ADJ.length)];
+  const n = BOT_NOUN[Math.floor(Math.random() * BOT_NOUN.length)];
+  const num = Math.floor(Math.random() * 9900) + 100;
+  return `${a} ${n} ${num}`;
+}
+
 export async function createPurchase(payload: PurchasePayload): Promise<Purchase> {
   await setup();
   const collision = await checkCollision(payload.x, payload.y, payload.width, payload.height);
@@ -132,6 +144,7 @@ export async function createPurchase(payload: PurchasePayload): Promise<Purchase
 
   const id = Date.now();
   const now = new Date().toISOString();
+  const label = payload.label && payload.label.trim() ? payload.label.trim() : randomBotName();
 
   await sql`
     INSERT INTO purchases (id, x, y, width, height, fill_type, color, image_url, label, link_url, created_at)
@@ -140,13 +153,13 @@ export async function createPurchase(payload: PurchasePayload): Promise<Purchase
       ${payload.fill_type},
       ${payload.color ?? null},
       ${payload.image_url ?? null},
-      ${payload.label ?? null},
+      ${label},
       ${payload.link_url ?? null},
       ${now}
     )
   `;
 
-  return toModel({ id, ...payload, color: payload.color ?? null, image_url: payload.image_url ?? null, label: payload.label ?? null, link_url: payload.link_url ?? null, created_at: now });
+  return toModel({ id, ...payload, color: payload.color ?? null, image_url: payload.image_url ?? null, label, link_url: payload.link_url ?? null, created_at: now });
 }
 
 export interface UpdatePayload {
