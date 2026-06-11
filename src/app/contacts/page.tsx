@@ -21,7 +21,7 @@ export default function ContactsPage() {
           </div>
           <div className="flex justify-between">
             <span className="text-zinc-500">Сайт</span>
-            <span className="text-zinc-800 font-medium">gifmagestore</span>
+            <a href="https://gifmage.ru" className="text-indigo-600 hover:underline font-medium">gifmage.ru</a>
           </div>
         </div>
 
