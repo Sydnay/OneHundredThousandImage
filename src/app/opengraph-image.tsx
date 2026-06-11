@@ -41,7 +41,7 @@ export default async function Image() {
             Останется на сетке навсегда.
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '18px', fontSize: '27px', color: '#c4b5fd', fontWeight: 700 }}>
-            <span>1 000 000 клеток</span><span style={{ color: '#52525b' }}>·</span><span>10 ₽ за клетку</span><span style={{ color: '#52525b' }}>·</span><span>gifmage.ru</span>
+            <span>1 000 000 клеток</span><span style={{ color: '#52525b' }}>·</span><span>10 руб. за клетку</span><span style={{ color: '#52525b' }}>·</span><span>gifmage.ru</span>
           </div>
         </div>
         <div style={{ width: '320px', display: 'flex', flexWrap: 'wrap', alignContent: 'center', gap: '9px' }}>
